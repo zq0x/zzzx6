@@ -1193,7 +1193,7 @@ def llm_create(*params):
         logging.exception(f'[llm_create] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
         logging.exception(f'[llm_create] >> got params: {params} ')
                 
-        req_params = VllmCreateValues(*params)
+        req_params = DockerApiComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"create",

@@ -302,8 +302,10 @@ def get_disk_info():
         disk_info = []
         processed_devices = set()
         for partition in partitions:
-            if partition.device not in processed_devices:
-
+            device = partition.device
+            if device not in processed_devices:
+                processed_devices.add(device)
+                
                 print(f'-> Processing partition: {partition}')
                 print(f'-> Device: {partition.device}')
                 print(f'-> Mountpoint: {partition.mountpoint}')
