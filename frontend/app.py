@@ -693,6 +693,7 @@ def disk_to_pd():
             print(f' &&&&&& GOT disk_info {disk_info} ')
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
+                "timestamp": entry.get("timestamp", "0"),
                 "device": disk_info.get("device", "0"),
                 "mountpoint": disk_info.get("mountpoint", "0"),
                 "fstype": disk_info.get("fstype", "0"),
@@ -735,19 +736,20 @@ def gpu_to_pd():
             GLOBAL_MEM_FREE = float(GLOBAL_MEM_FREE) + float(current_gpu_mem_free.split()[0])
 
             
-            rows.append({                
-                "current_uuid": gpu_info.get("current_uuid", "0"),
-                "gpu_i": entry.get("gpu_i", "0"),
-                "gpu_util": gpu_info.get("gpu_util", "0"),
+            rows.append({                                
+                "name": gpu_info.get("name", "0"),
                 "mem_util": gpu_info.get("mem_util", "0"),
-                "temperature": gpu_info.get("temperature", "0"),
+                "timestamp": entry.get("timestamp", "0"),
                 "fan_speed": gpu_info.get("fan_speed", "0"),
+                "temperature": gpu_info.get("temperature", "0"),
+                "gpu_util": gpu_info.get("gpu_util", "0"),
                 "power_usage": gpu_info.get("power_usage", "0"),
                 "clock_info_graphics": gpu_info.get("clock_info_graphics", "0"),
-                "clock_info_mem": gpu_info.get("clock_info_mem", "0"),
-                "timestamp": entry.get("timestamp", "0"),
+                "clock_info_mem": gpu_info.get("clock_info_mem", "0"),                
                 "cuda_cores": gpu_info.get("cuda_cores", "0"),
                 "compute_capability": gpu_info.get("compute_capability", "0"),
+                "current_uuid": gpu_info.get("current_uuid", "0"),
+                "gpu_i": entry.get("gpu_i", "0"),
                 "supported": gpu_info.get("supported", "0"),
                 "not_supported": gpu_info.get("not_supported", "0"),
                 "status": "ok"
@@ -1524,17 +1526,17 @@ def create_app():
         with gr.Accordion(("System Stats"), open=False) as system_stats:
             with gr.Row() as row_gpu_dataframe:
                 with gr.Accordion(("GPU information"), open=False):
-                    gpu_dataframe = gr.Dataframe(label="GPU information")
+                    gpu_dataframe = gr.Dataframe()
 
                     
             with gr.Row() as row_disk_dataframe:
                 with gr.Accordion(("Disk information"), open=False):
-                    disk_dataframe = gr.Dataframe(label="Disk information")
+                    disk_dataframe = gr.Dataframe()
 
 
             with gr.Row() as row_network_dataframe:
                 with gr.Accordion(("Network information"), open=False):
-                    network_dataframe = gr.Dataframe(label="Network information")
+                    network_dataframe = gr.Dataframe()
         
         
         disk_timer = gr.Timer(1,active=True)

@@ -357,10 +357,10 @@ async def redis_timer_disk():
                 await r.set('db_disk', json.dumps(updated_disk_data))
             else:
                 updated_disk_data = []
-                for gpu_i in range(0,len(total_disk_info)):
+                for disk_i in range(0,len(total_disk_info)):
                     update_data = {
-                        "gpu_i": gpu_i,
-                        "gpu_info": str(total_disk_info[gpu_i]),
+                        "disk_i": disk_i,
+                        "disk_info": str(total_disk_info[disk_i]),
                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                     }
                     updated_disk_data.append(update_data)
@@ -389,10 +389,20 @@ def get_gpu_info():
 
             
             try:
-                res_current_uuid = pynvml.nvmlDeviceGetUUID(handle)
-                current_gpu_info['res_current_uuid'] = f'{res_current_uuid}'
+                res_uuid = pynvml.nvmlDeviceGetUUID(handle)
+                current_gpu_info['res_uuid'] = f'{res_uuid}'
             except Exception as e:
                 print(f'0 gpu_info {e}')
+                current_gpu_info['res_uuid'] = f'0'
+            
+            
+            
+            try:
+                res_name = pynvml.nvmlDeviceGetName(handle)
+                current_gpu_info['res_name'] = f'{res_name}'
+            except Exception as e:
+                print(f'00 gpu_info {e}')
+                current_gpu_info['res_name'] = f'0'
             
             
             
@@ -498,7 +508,8 @@ def get_gpu_info():
             
             gpu_info.append({                
                 "gpu_i": current_gpu_info.get("res_gpu_i", "0"),
-                "current_uuid": current_gpu_info.get("res_current_uuid", "0"),
+                "name": current_gpu_info.get("res_name", "0"),
+                "current_uuid": current_gpu_info.get("res_uuid", "0"),
                 "gpu_util": current_gpu_info.get("res_gpu_util", "0"),
                 "mem_util": current_gpu_info.get("res_mem_util", "0"),
                 "mem_total": current_gpu_info.get("res_mem_total", "0"),
