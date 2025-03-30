@@ -1193,7 +1193,7 @@ def llm_create(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"create",
-            "req_image":"xoo4foo/zzvllm31:latest",
+            "req_image":"xoo4foo/zzvllm32:latest",
             "req_runtime":"nvidia",
             "req_shm_size":"8gb",
             "req_port":"1373",

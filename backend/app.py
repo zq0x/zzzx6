@@ -337,19 +337,20 @@ def get_disk_info():
                 except Exception as e:
                     print(f'[ERROR] [get_disk_info] Disk I/O statistics not available on this system {e}')
                     pass
-
-                disk_info.append({                
-                    "device": current_disk_info.get("device", "0"),
-                    "mountpoint": current_disk_info.get("mountpoint", "0"),
-                    "fstype": current_disk_info.get("fstype", "0"),
-                    "opts": current_disk_info.get("opts", "0"),
-                    "usage_total": current_disk_info.get("usage_total", "0"),
-                    "usage_used": current_disk_info.get("usage_used", "0"),
-                    "usage_free": current_disk_info.get("usage_free", "0"),
-                    "usage_percent": current_disk_info.get("usage_percent", "0"),
-                    "io_read_count": current_disk_info.get("io_read_count", "0"),
-                    "io_write_count": current_disk_info.get("io_write_count", "0")
-                })
+                
+                if not str(partition.device) == "null":
+                    disk_info.append({                
+                        "device": current_disk_info.get("device", "0"),
+                        "mountpoint": current_disk_info.get("mountpoint", "0"),
+                        "fstype": current_disk_info.get("fstype", "0"),
+                        "opts": current_disk_info.get("opts", "0"),
+                        "usage_total": current_disk_info.get("usage_total", "0"),
+                        "usage_used": current_disk_info.get("usage_used", "0"),
+                        "usage_free": current_disk_info.get("usage_free", "0"),
+                        "usage_percent": current_disk_info.get("usage_percent", "0"),
+                        "io_read_count": current_disk_info.get("io_read_count", "0"),
+                        "io_write_count": current_disk_info.get("io_write_count", "0")
+                    })
 
         return disk_info
     except Exception as e:
