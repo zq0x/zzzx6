@@ -1477,7 +1477,7 @@ def create_app():
                     vllms=gr.Radio(["vLLM1", "vLLM2", "Create New"], value="vLLM1", show_label=False, info="Select a vLLM or create a new one. Where?")
                     
                 with gr.Accordion(("Create vLLM Parameters"), open=True, visible=False) as vllm_create_settings:
-                    vllm_create_components = VllmCreateComponents(
+                    docker_api_components = DockerApiComponents(
                         max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
                         gpu_memory_utilization=gr.Slider(0.2, 0.99, value=0.87, label="gpu_memory_utilization", info=f"The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.")
@@ -1715,7 +1715,7 @@ def create_app():
             output
         ).then(
             llm_create,
-            vllm_create_components.to_list(),
+            docker_api_components.to_list(),
             [output]
         ).then(
             lambda: gr.update(open=False), 

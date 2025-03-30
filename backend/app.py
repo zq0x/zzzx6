@@ -300,56 +300,63 @@ def get_disk_info():
         partitions = psutil.disk_partitions(all=False)
         print(f'-> partitions: {partitions}')
         disk_info = []
+        processed_devices = set()
         for partition in partitions:
+            if partition.device not in processed_devices:
 
-            print(f'-> Processing partition: {partition}')
-            print(f'-> Device: {partition.device}')
-            print(f'-> Mountpoint: {partition.mountpoint}')
-            print(f'-> Filesystem type: {partition.fstype}')
+                print(f'-> Processing partition: {partition}')
+                print(f'-> Device: {partition.device}')
+                print(f'-> Mountpoint: {partition.mountpoint}')
+                print(f'-> Filesystem type: {partition.fstype}')
 
-            current_disk_info = {}
+                current_disk_info = {}
 
-            try:                
-                current_disk_info['device'] = str(partition.device)
-                current_disk_info['mountpoint'] = str(partition.mountpoint)
-                current_disk_info['fstype'] = str(partition.fstype)
-                current_disk_info['opts'] = str(partition.opts)
+                try:                
+                    current_disk_info['device'] = str(partition.device)
+                    current_disk_info['mountpoint'] = str(partition.mountpoint)
+                    current_disk_info['fstype'] = str(partition.fstype)
+                    current_disk_info['opts'] = str(partition.opts)
+                    
+                    usage = psutil.disk_usage(partition.mountpoint)
+                    current_disk_info['usage_total'] = str(usage.total)
+                    current_disk_info['usage_used'] = str(usage.used)
+                    current_disk_info['usage_free'] = str(usage.free)
+                    current_disk_info['usage_percent'] = str(usage.percent)
+                    
+                except Exception as e:
+                    print(f'[ERROR] [get_disk_info] Usage: [Permission denied] {e}')
+                    pass
                 
-                usage = psutil.disk_usage(partition.mountpoint)
-                current_disk_info['usage_total'] = str(usage.total)
-                current_disk_info['usage_used'] = str(usage.used)
-                current_disk_info['usage_free'] = str(usage.free)
-                current_disk_info['usage_percent'] = str(usage.percent)
-                
-            except Exception as e:
-                print(f'[ERROR] [get_disk_info] Usage: [Permission denied] {e}')
-                pass
-            
-            try:                
-                io_stats = psutil.disk_io_counters()
-                current_disk_info['io_read_count'] = str(io_stats.read_count)
-                current_disk_info['io_write_count'] = str(io_stats.write_count)
-                
-            except Exception as e:
-                print(f'[ERROR] [get_disk_info] Disk I/O statistics not available on this system {e}')
-                pass
+                try:                
+                    io_stats = psutil.disk_io_counters()
+                    current_disk_info['io_read_count'] = str(io_stats.read_count)
+                    current_disk_info['io_write_count'] = str(io_stats.write_count)
+                    
+                except Exception as e:
+                    print(f'[ERROR] [get_disk_info] Disk I/O statistics not available on this system {e}')
+                    pass
 
-            disk_info.append({                
-                "device": current_disk_info.get("device", "0"),
-                "mountpoint": current_disk_info.get("mountpoint", "0"),
-                "fstype": current_disk_info.get("fstype", "0"),
-                "opts": current_disk_info.get("opts", "0"),
-                "usage_total": current_disk_info.get("usage_total", "0"),
-                "usage_used": current_disk_info.get("usage_used", "0"),
-                "usage_free": current_disk_info.get("usage_free", "0"),
-                "usage_percent": current_disk_info.get("usage_percent", "0"),
-                "io_read_count": current_disk_info.get("io_read_count", "0"),
-                "io_write_count": current_disk_info.get("io_write_count", "0")
-            })
+                disk_info.append({                
+                    "device": current_disk_info.get("device", "0"),
+                    "mountpoint": current_disk_info.get("mountpoint", "0"),
+                    "fstype": current_disk_info.get("fstype", "0"),
+                    "opts": current_disk_info.get("opts", "0"),
+                    "usage_total": current_disk_info.get("usage_total", "0"),
+                    "usage_used": current_disk_info.get("usage_used", "0"),
+                    "usage_free": current_disk_info.get("usage_free", "0"),
+                    "usage_percent": current_disk_info.get("usage_percent", "0"),
+                    "io_read_count": current_disk_info.get("io_read_count", "0"),
+                    "io_write_count": current_disk_info.get("io_write_count", "0")
+                })
+            else:
+                print(f'-> Device: {partition.device} ALREADY PROCESSED!')
+                logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_disk_info] -> Device: {partition.device} ALREADY PROCESSED!')
         print(f' &&&&&& BACKEND GOT disk_info {disk_info} ')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_disk_info] -> &&&&&& BACKEND GOT disk_info {disk_info}')
         return disk_info
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_disk_info] [ERROR] e -> {e}')
         return f'{e}'
 
 total_disk_info = get_disk_info()
