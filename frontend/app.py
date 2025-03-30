@@ -118,6 +118,15 @@ def get_gpu_data():
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return e
 
+def get_vllm_data():
+    try:
+        res_vllm_data_all = json.loads(r.get('db_vllm'))
+        print(f' &&&&&&  !!! GOT res_vllm_data_all {res_vllm_data_all} ')
+        return res_vllm_data_all
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        return e
+
 def get_disk_data():
     try:
         res_disk_data_all = json.loads(r.get('db_disk'))
@@ -691,10 +700,6 @@ def disk_to_pd():
             disk_info = ast.literal_eval(entry['disk_info'])
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
-                "timestamp": entry.get("timestamp", "0")
-            })
-            rows.append({                
-                "disk_i": entry.get("disk_i", "0"),
                 "timestamp": entry.get("timestamp", "0"),
                 "device": disk_info.get("device", "0"),
                 "usage_percent": disk_info.get("usage_percent", "0"),
@@ -715,6 +720,26 @@ def disk_to_pd():
         logging.info(f' &&&&&& [ERROR] [disk_to_pd] GOT e {e}')
 
 disk_to_pd()
+
+def vllm_to_pd():
+    rows = []
+    try:
+        vllm_list = get_vllm_data()
+        for entry in vllm_list:
+            vllm_info = ast.literal_eval(entry['vllm_info'])
+            rows.append({                
+                "vllm_i": entry.get("vllm_i", "0"),
+                "timestamp": entry.get("timestamp", "0"),
+                "name": vllm_info.get("name", "niiiixbla")              
+            })
+        df = pd.DataFrame(rows)
+        return df
+    
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
+
+vllm_to_pd()
 
 def gpu_to_pd():
     global GLOBAL_MEM_TOTAL
@@ -1554,6 +1579,9 @@ def create_app():
             with gr.Accordion(("GPU information"), open=False) as acc_gpu_dataframe:
                 gpu_dataframe = gr.Dataframe()
 
+            with gr.Accordion(("vLLM information"), open=False) as acc_vllm_dataframe:
+                vllm_dataframe = gr.Dataframe()
+
             with gr.Accordion(("Disk information"), open=False) as acc_disk_dataframe:
                 disk_dataframe = gr.Dataframe()
 
@@ -1561,8 +1589,11 @@ def create_app():
                 network_dataframe = gr.Dataframe()
 
 
+        vllm_timer = gr.Timer(1,active=True)
+        vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
+        
         disk_timer = gr.Timer(1,active=True)
-        disk_timer.tick(disk_to_pd, outputs=disk_dataframe) 
+        disk_timer.tick(disk_to_pd, outputs=disk_dataframe)
 
         gpu_timer = gr.Timer(1,active=True)
         gpu_timer.tick(gpu_to_pd, outputs=gpu_dataframe)

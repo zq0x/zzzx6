@@ -58,68 +58,6 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
     logging.info(f' [START] SUCCESS! Loaded COMPUTE_CAPABILITIES: {COMPUTE_CAPABILITIES}')
 
 
-# def get_vllm_info():
-#     container_info = []
-#     try:        
-#         res_container_list = client.containers.list(all=True)
-#         print(f'** [get_container_info] {res_container_list} ({len(res_container_list)})')
-#         for res_container_i in range(0,len(res_container_list)):
-#             print("res_container_i")
-#             print(res_container_i)
-#             print("res_container_list[res_container_i]")
-#             print(res_container_list[res_container_i])
-#             container_info.append({
-#                     "container_i": f'{res_container_i}',
-#                     "container_info": f'{res_container_i}'
-#             })
-#         return container_info
-#     except Exception as e:
-#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-#         return container_info
-
-
-# async def redis_timer_vllm():
-#     while True:
-#         try:
-#             current_container_info = get_container_info()
-#             res_db_container = await r.get('db_container')
-#             if res_db_container is not None:
-#                 db_container = json.loads(res_db_container)
-#                 updated_container_data = []
-#                 print(f' [container] 1 len(current_gpu_info): {len(current_container_info)}')
-#                 for container_i in range(0,len(current_container_info)):
-#                     print(f' [container] gpu_i: {container_i}')
-#                     update_data = {
-#                         "container_i": container_i,
-#                         "container_info": str(current_container_info[container_i]),
-#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#                     }
-#                     updated_container_data.append(update_data)
-#                     print(f'[container] 1 updated_container_data: {updated_container_data}')
-#                 await r.set('db_container', json.dumps(updated_container_data))
-#             else:
-#                 updated_container_data = []
-#                 for container_i in range(0,len(current_container_info)):
-#                     update_data = {
-#                         "container_i": container_i,
-#                         "container_info": str(current_container_info[container_i]),
-#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#                     }
-#                     updated_container_data.append(update_data)
-#                     print(f'[container] 2 updated_container_data: {updated_container_data}')
-#                 await r.set('db_container', json.dumps(updated_container_data))
-#             await asyncio.sleep(1.0)
-#         except Exception as e:
-#             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
-#             await asyncio.sleep(1.0)
-
-
-
-
-
-
-
-
 
 
 
@@ -132,8 +70,6 @@ prev_bytes_recv = 0
 def get_download_speed():
     try:
         global prev_bytes_recv
-        
-        # print(f'trying to get download speed ...')
         net_io = psutil.net_io_counters()
         bytes_recv = net_io.bytes_recv
         download_speed = bytes_recv - prev_bytes_recv
@@ -141,7 +77,6 @@ def get_download_speed():
         download_speed_kb = download_speed / 1024
         download_speed_mbit_s = (download_speed * 8) / (1024 ** 2)      
         bytes_received_mb = bytes_recv
-
         return f'download_speed_mbit_s {download_speed_mbit_s} bytes_recv {bytes_recv} download_speed {download_speed} download_speed_kb {download_speed_kb} '
         # return f'{download_speed_kb:.2f} KB/s (total: {bytes_received_mb:.2f})'
     except Exception as e:
@@ -153,7 +88,6 @@ def get_download_speed():
 def get_network_info():
     network_info = []
     try: 
-            
         current_total_dl = get_download_speed()
         network_info.append({
             "container": f'all',
@@ -161,86 +95,21 @@ def get_network_info():
             "current_dl": f'{current_total_dl}',
             "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         })
-        
-        
-        # print(f'finding all containers ..')
         res_container_list = client.containers.list(all=True)
-        
-        # print(f'Found {len(res_container_list)} containers!')
-
-        # Iterate through each container
         for container in res_container_list:
-            # Get container stats
             container_stats = container.stats(stream=False)
-            
-            # Extract network information (rx_bytes)
             networks = container_stats.get('networks', {})
-            rx_bytes = 0  # Default value if no network data is found
+            rx_bytes = 0
             if networks:
-                # Sum rx_bytes across all network interfaces (e.g., eth0, eth1, etc.)
                 rx_bytes = sum(network.get('rx_bytes', 0) for network in networks.values())
-            
-            # Append network information to the list
+
             network_info.append({
                 "container": container.name,
-                "info": "infoblabalba",  # Placeholder for additional info
-                "current_dl": str(rx_bytes),  # Use the actual rx_bytes value
+                "info": "infoblabalba",
+                "current_dl": str(rx_bytes),
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
-            
-            # Print container stats for debugging
-            # print(f'Container: {container.name}')
-            # print(f'Stats: {container_stats}')
-            # print(f'Network Info: {networks}')
-            # print(f'RX Bytes: {rx_bytes}')
-
-        # Now `network_info` contains the network information for all containers
-        # print('Network Info:')
-        # print(network_info)
-
-
-        
-        # print(f'Found {len(res_container_list)} containers!')
-        # rx_bytes = sum(network.get('rx_bytes', 0) for network in networks.values())
-
-
-        # for container in res_container_list:
-        #     container_stats = container.stats(stream=False)
-        #     print(f'container_stats {container_stats}')
-        #     print(f'container_stats["info"] {container_stats["info"]}')
-            
-        #     rx_bytes = sum(network.get('rx_bytes', 0) for network in networks.values())
-        #     network_info.append({
-        #         "container": container.name,
-        #         "info": "infoblabalba", 
-        #         "current_dl": "1337",
-        #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        #     })
-            
-
-
-        
-        
-        
-        # res_container_list = client.containers.list(all=True)
-        # print(f'found {len(res_container_list)} containers!')
-        # res_container_list_attrs = [container.attrs for container in res_container_list]
-        # for c in res_container_list_attrs:
-        #     print('c["name"]')
-        #     print()
-        #     # get container again lol
-        #     req_container = client.containers.get(c["name"])
-        #     stats = c.stats(stream=False)
-        #     print('stats')
-        #     print(stats)
-        #     network_info.append({
-        #         "container": f'{c["name"]}',
-        #         "info": f'network_info_blank', 
-        #         "current_dl": f'000000000000000',
-        #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        #     })
-            
-        # print(f'got all containers! printing final before responding ({len(network_info)}) ')        
+   
         return network_info
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -255,9 +124,7 @@ async def redis_timer_network():
             if res_db_network is not None:
                 db_network = json.loads(res_db_network)
                 updated_network_data = []
-                # print(f' [network] 1 len(current_gpu_info): {len(current_network_info)}')
                 for net_info_obj in current_network_info:
-                    # print(f' [network] net_info_obj: {net_info_obj}')
                     update_data = {
                         "container": str(net_info_obj["container"]),
                         "info": str(net_info_obj["info"]),
@@ -265,7 +132,6 @@ async def redis_timer_network():
                         "timestamp": str(net_info_obj["timestamp"]),
                     }
                     updated_network_data.append(update_data)
-                    # print(f'[network] 1 updated_network_data: {updated_network_data}')
                 await r.set('db_network', json.dumps(updated_network_data))
             else:
                 updated_network_data = []
@@ -338,19 +204,18 @@ def get_disk_info():
                     print(f'[ERROR] [get_disk_info] Disk I/O statistics not available on this system {e}')
                     pass
                 
-                if not str(partition.device) == "null":
-                    disk_info.append({                
-                        "device": current_disk_info.get("device", "0"),
-                        "mountpoint": current_disk_info.get("mountpoint", "0"),
-                        "fstype": current_disk_info.get("fstype", "0"),
-                        "opts": current_disk_info.get("opts", "0"),
-                        "usage_total": current_disk_info.get("usage_total", "0"),
-                        "usage_used": current_disk_info.get("usage_used", "0"),
-                        "usage_free": current_disk_info.get("usage_free", "0"),
-                        "usage_percent": current_disk_info.get("usage_percent", "0"),
-                        "io_read_count": current_disk_info.get("io_read_count", "0"),
-                        "io_write_count": current_disk_info.get("io_write_count", "0")
-                    })
+                disk_info.append({                
+                    "device": current_disk_info.get("device", "0"),
+                    "mountpoint": current_disk_info.get("mountpoint", "0"),
+                    "fstype": current_disk_info.get("fstype", "0"),
+                    "opts": current_disk_info.get("opts", "0"),
+                    "usage_total": current_disk_info.get("usage_total", "0"),
+                    "usage_used": current_disk_info.get("usage_used", "0"),
+                    "usage_free": current_disk_info.get("usage_free", "0"),
+                    "usage_percent": current_disk_info.get("usage_percent", "0"),
+                    "io_read_count": current_disk_info.get("io_read_count", "0"),
+                    "io_write_count": current_disk_info.get("io_write_count", "0")
+                })
 
         return disk_info
     except Exception as e:
@@ -607,11 +472,96 @@ async def redis_timer_gpu():
             await asyncio.sleep(1.0)
 
 
+
+
+# created (running time)
+# port 
+# gpu name 
+# gpu uuid
+# public or private 
+# user 
+# model 
+# vllm image 
+# prompts amount
+# tokens
+
+# computed
+
+
+def get_vllm_info():
+    try:
+
+        print(f'-> damit halt iwas hier steht xD')
+        
+        res_container_list = client.containers.list(all=True)
+        print(f'-> mhmmhmhmh 1')
+        vllm_containers_running = [c for c in res_container_list if c.name.startswith("container_vllm") and c.status == "running"]
+        print(f'-> found total vLLM running containers: {len(vllm_containers_running)}')
+        vllm_info = []
+
+        for vllm_container in vllm_containers_running:
+            
+            current_vllm_info = {}
+            print(f'-> vllm_container: {vllm_container} ')
+            try:                
+                current_vllm_info['name'] = str(vllm_container.name)
+                
+            except Exception as e:
+                print(f'[ERROR] [get_vllm_info] No name found for container {e}')
+                pass
+
+
+            vllm_info.append({                
+                "name": current_vllm_info.get("name", "nix")
+            })
+
+        return vllm_info
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_vllm_info] [ERROR] e -> {e}')
+        return f'{e}'
+
+
+total_vllm_info = get_vllm_info()
+
+async def redis_timer_vllm():
+    while True:
+        try:
+            total_vllm_info = get_vllm_info()
+            res_db_vllm = await r.get('db_vllm')
+            if res_db_vllm is not None:
+                db_vllm = json.loads(res_db_vllm)
+                updated_vllm_data = []
+                for vllm_i in range(0,len(total_vllm_info)):
+                    update_data = {
+                        "vllm_i": vllm_i,
+                        "vllm_info": str(total_vllm_info[vllm_i]),
+                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    }
+                    updated_vllm_data.append(update_data)
+                await r.set('db_vllm', json.dumps(updated_vllm_data))
+            else:
+                updated_vllm_data = []
+                for vllm_i in range(0,len(total_vllm_info)):
+                    update_data = {
+                        "vllm_i": vllm_i,
+                        "vllm_info": str(total_vllm_info[vllm_i]),
+                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    }
+                    updated_vllm_data.append(update_data)
+                await r.set('db_vllm', json.dumps(updated_vllm_data))
+            await asyncio.sleep(1.0)
+        except Exception as e:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
+            await asyncio.sleep(1.0)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     asyncio.create_task(redis_timer_gpu())
     asyncio.create_task(redis_timer_disk())
     asyncio.create_task(redis_timer_network())
+    asyncio.create_task(redis_timer_vllm())
     yield
 
 app = FastAPI(lifespan=lifespan)
