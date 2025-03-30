@@ -772,6 +772,7 @@ async def docker_rest(request: Request):
                 
                 elif "xoo4foo/" in req_data["req_image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
+                    print(f' !!!!! create found req_container_name: {req_container_name} !')
 
                     client.containers.run(
                         image=req_data["req_image"],
@@ -819,8 +820,13 @@ async def docker_rest(request: Request):
                         print(f'!!!!! check if container running 5 !! FOUND NEW CONTAINER !! SUCCESS')
                         
                         print(f' * ! * ! * trying to load ....  0 ')
-                        VLLM_URL = f'http://localhost:{req_data["req_port"]}/vllm'
+                        VLLM_URL = f'http://{req_container_name}]:{req_data["req_port"]}/vllm'
                         print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
+                        print(f' * ! * ! * but first sleeping for 120 sec ...')
+                        for i in range(0,120):
+                            print(f' * ! * ! * zzz ZZZ zzz {i} ... * ! * ! *')
+                            time.sleep(1)
+                        
                         try:
                             response = requests.post(VLLM_URL, json={
                                 "req_type":"load",
