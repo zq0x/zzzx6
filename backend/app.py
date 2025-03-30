@@ -574,7 +574,7 @@ async def stop_vllm_container():
         print(f' -> stop_vllm_container')
         res_container_list = client.containers.list(all=True)
         print(f'-> mhmmhmhmh 1')
-        vllm_containers_running = [c for c in res_container_list if c.name.startswith("vllm") and c.status == "running"]
+        vllm_containers_running = [c for c in res_container_list if c.name.startswith("container_vllm") and c.status == "running"]
         print(f'-> found total vLLM running containers: {len(vllm_containers_running)}')
         while len(vllm_containers_running) > 0:
             print(f'stopping all vLLM containers...')
@@ -700,7 +700,7 @@ async def docker_rest(request: Request):
             try:
                 req_container_name = str(req_data["req_model"]).replace('/', '_')
                 ts = str(int(datetime.now().timestamp()))
-                req_container_name = f'vllm_{req_container_name}_{ts}'
+                req_container_name = f'container_vllm_{req_container_name}_{ts}'
                 print(f' ************ calling req_container_name: {req_container_name}')
                 
                 if req_data["req_image"] == "vllm/vllm-openai:latest":
@@ -797,47 +797,38 @@ async def docker_rest(request: Request):
                 
                 elif "xoo4foo/" in req_data["req_image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
-                    res_container = client.containers.run(
-                        build={"context": f'./{req_container_name}'},
-                        image=req_data["req_image"],
-                        runtime=req_data["req_runtime"],
-                        deploy={
-                            "resources": {
-                                "reservations": {
-                                    "devices": [
-                                        {
-                                            "driver": f'{req_data["req_driver"]}',
-                                            "count": "all",
-                                            "capabilities": [f'{req_data["req_capabilities"]}']
-                                        }
-                                    ]
-                                }
-                            }
-                        },
-                        ports={
-                            f'{req_data["req_port"]}/tcp': ("0.0.0.0", req_data["req_port"])
-                        },
-                        container_name=f'{req_container_name}',
-                        volumes={
-                            "/logs": {"bind": "/logs", "mode": "rw"},
-                            "/models": {"bind": "/models", "mode": "rw"},
-                        },
-                        shm_size=f'{req_data["req_shm_size"]}',
-                        environment={
-                            "NCCL_DEBUG": "INFO",
-                            "VLLM_PORT": f'{req_data["req_port"]}',
-                        },
-                        command=[
-                            "python", "app.py",
-                            f'--model {req_data["req_model"]}',
-                            f'--port {req_data["req_port"]}',
-                            f'--tensor-parallel-size {req_data["req_tensor_parallel_size"]}',
-                            f'--gpu-memory-utilization {req_data["req_gpu_memory_utilization"]}',
-                            f'--max-model-len {req_data["req_max_model_len"]}'
-                        ]
-                    )
-                    container_id = res_container.id
-                    return JSONResponse({"result_status": 200, "result_data": str(container_id)})
+                    # Build the Docker image (if needed)
+                    build_command = [
+                        "docker", "build",
+                        "-t", req_data["req_image"],
+                        f'./{req_container_name}'
+                    ]
+                    subprocess.run(build_command, check=True)
+
+                    # Run the Docker container
+                    run_command = [
+                        "docker", "run",
+                        "--name", req_container_name,
+                        "--runtime", req_data["req_runtime"],
+                        "--shm-size", req_data["req_shm_size"],
+                        "--detach",
+                        "--env", f'NCCL_DEBUG=INFO',
+                        "--env", f'VLLM_PORT={req_data["req_port"]}',
+                        "--gpus", "all",
+                        "--publish", f'{req_data["req_port"]}:{req_data["req_port"]}',
+                        "--volume", "/logs:/logs",
+                        "--volume", "/models:/models",
+                        req_data["req_image"],
+                        "python", "app.py",
+                        f'--model {req_data["req_model"]}',
+                        f'--port {req_data["req_port"]}',
+                        f'--tensor-parallel-size {req_data["req_tensor_parallel_size"]}',
+                        f'--gpu-memory-utilization {req_data["req_gpu_memory_utilization"]}',
+                        f'--max-model-len {req_data["req_max_model_len"]}'
+                    ]
+                    subprocess.run(run_command, check=True)
+
+                    return {"result_status": 200, "result_data": f'Container {req_container_name} started successfully'}
                 else:
                     print(f'ERROR no req_image found: req_data["req_image"]: {req_data["req_image"]}')
                     return JSONResponse({"result_status": 500, "result_data": f'"no req_data["req_image"] {req_data["req_image"]}'})
