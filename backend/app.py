@@ -719,15 +719,15 @@ async def docker_rest(request: Request):
                 
                 if res_db_gpu is not None:
                     db_gpu = json.loads(res_db_gpu)                    
-                    all_used_ports += [req_data["req_port_vllm"],req_data["req_port_model"]]
-                    all_used_models += [req_data["req_port_model"]]
+                    all_used_ports += [req_data["req_port"],req_data["req_port"]]
+                    all_used_models += [req_data["req_port"]]
                     add_data = {
                         "gpu": 0, 
                         "gpu_info": "0",
                         "running_model": str(req_container_name),
                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                        "port_vllm": req_data["req_port_vllm"],
-                        "port_model": req_data["req_port_model"],
+                        "port_vllm": req_data["req_port"],
+                        "port_model": req_data["req_port"],
                         "used_ports": str(all_used_ports),
                         "used_models": str(all_used_models)
                     }
@@ -741,9 +741,9 @@ async def docker_rest(request: Request):
                         "gpu_info": "0",
                         "running_model": str(req_container_name),
                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                        "port_vllm": str(req_data["req_port_vllm"]),
-                        "port_model": str(req_data["req_port_model"]),
-                        "used_ports": f'{str(req_data["req_port_vllm"])},{str(req_data["req_port_model"])}',
+                        "port_vllm": str(req_data["req_port"]),
+                        "port_model": str(req_data["req_port"]),
+                        "used_ports": f'{str(req_data["req_port"])},{str(req_data["req_port"])}',
                         "used_models": str(str(req_data["req_model"]))
                     }
                     await r.set('db_gpu', json.dumps(add_data))
