@@ -54,6 +54,8 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
     logging.info(f' [START] SUCCESS! Loaded: {DEFAULTS_PATH}')
     DEFAULT_CONTAINER_STATS = defaults_backend['DEFAULT_CONTAINER_STATS']
     logging.info(f' [START] SUCCESS! Loaded DEFAULT_CONTAINER_STATS: {DEFAULT_CONTAINER_STATS}')
+    COMPUTE_CAPABILITIES = defaults_backend['compute_capability']
+    logging.info(f' [START] SUCCESS! Loaded COMPUTE_CAPABILITIES: {COMPUTE_CAPABILITIES}')
 
 
 # def get_vllm_info():
@@ -289,9 +291,22 @@ async def redis_timer_network():
 
 def get_disk_info():
     try:
+        disk_usage = psutil.disk_usage('/')
+        print(f'-> Total: {disk_usage.total / (1024**3):.2f} GB')
+        print(f'-> Used: {disk_usage.used / (1024**3):.2f} GB')
+        print(f'-> Free: {disk_usage.free / (1024**3):.2f} GB')
+        print(f'-> Usage: {disk_usage.percent}%')
+
         partitions = psutil.disk_partitions(all=False)
+        print(f'-> partitions: {partitions}')
         disk_info = []
         for partition in partitions:
+
+            print(f'-> Processing partition: {partition}')
+            print(f'-> Device: {partition.device}')
+            print(f'-> Mountpoint: {partition.mountpoint}')
+            print(f'-> Filesystem type: {partition.fstype}')
+
             current_disk_info = {}
 
             try:                
@@ -398,7 +413,7 @@ def get_gpu_info():
             
             
             try:
-                res_name = pynvml.nvmlDeviceGetName(handle)
+                res_name = pynvml.nvmlDeviceGetName(handle).decode('utf-8').strip()
                 current_gpu_info['res_name'] = f'{res_name}'
             except Exception as e:
                 print(f'00 gpu_info {e}')
@@ -499,6 +514,19 @@ def get_gpu_info():
                     res_not_supported.append('Bfloat16')
             except Exception as e:
                 print(f'9 gpu_info {e}')
+                res_compute_capability = 0
+            
+            if res_compute_capability == 0:
+                try:
+                    res_name = pynvml.nvmlDeviceGetName(handle).decode('utf-8').strip()
+                    if str(res_name) in defaults_backend['compute_capability']:
+                        print(f"{res_name} exists with compute capability {defaults_backend['compute_capability'][res_name]}")
+                        res_compute_capability = f'{defaults_backend['compute_capability'][res_name]}'
+                    else:
+                        print(f"{res_name} not found in the database")
+                except Exception as e:
+                    print(f'99 res_compute_capability {e}')
+                
             
             
             res_supported_str = ",".join(res_supported)

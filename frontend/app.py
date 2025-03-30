@@ -695,7 +695,7 @@ def disk_to_pd():
             logging.info(f' &&&&&& GOT disk_info {disk_info}')
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
-                "timestamp": entry.get("timestamp", "0")               
+                "timestamp": entry.get("timestamp", "0")
             })
             # rows.append({                
             #     "disk_i": entry.get("disk_i", "0"),
