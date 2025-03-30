@@ -953,18 +953,18 @@ class PromptValues:
 
 @dataclass
 class VllmCreateComponents:
-    create_max_model_len: gr.Slider
-    create_tensor_parallel_size: gr.Number
-    create_gpu_memory_utilization: gr.Slider
+    max_model_len: gr.Slider
+    tensor_parallel_size: gr.Number
+    gpu_memory_utilization: gr.Slider
     
     def to_list(self) -> list:
         return [getattr(self, f.name) for f in fields(self)]
 
 @dataclass
 class VllmCreateValues:
-    create_max_model_len: int
-    create_tensor_parallel_size: int
-    create_gpu_memory_utilization: int
+    max_model_len: int
+    tensor_parallel_size: int
+    gpu_memory_utilization: int
 
 @dataclass
 class VllmLoadComponents:
