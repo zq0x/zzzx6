@@ -1184,13 +1184,18 @@ def llm_create(*params):
                 
         req_params = VllmCreateValues(*params)
 
-
         response = requests.post(BACKEND_URL, json={
             "req_method":"create",
-            "model_id":GLOBAL_SELECTED_MODEL_ID,
-            "max_model_len":req_params.max_model_len,
-            "tensor_parallel_size":req_params.tensor_parallel_size,
-            "gpu_memory_utilization":req_params.gpu_memory_utilization
+            "req_image":"xoo4foo/zzvllm30:latest",
+            "req_runtime":"nvidia",
+            "req_driver":"nvidia",
+            "req_capabilities":"gpu",
+            "req_port":"1373",
+            "req_shm_size":"8gb",
+            "req_model":GLOBAL_SELECTED_MODEL_ID,
+            "req_tensor_parallel_size":req_params.tensor_parallel_size,
+            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
+            "req_max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
 
         if response.status_code == 200:
@@ -1491,12 +1496,12 @@ def create_app():
                 with gr.Row(visible=False) as row_download:
                     btn_dl = gr.Button("DOWNLOAD", variant="primary")
                 with gr.Row(visible=False) as vllm_load_actions:
-                    btn_deploy_load = gr.Button("DEPLOY")
+                    btn_load = gr.Button("DEPLOY")
                     # btn_vllm_running2 = gr.Button("CLEAR NU GO 1370")
                     # btn_vllm_running3 = gr.Button("CLEAR TORCH", visible=True)
                 with gr.Row(visible=False) as vllm_create_actions:
-                    btn_deploy_create = gr.Button("CREATE", variant="primary")
-                    btn_deploy_create_close = gr.Button("CANCEL")
+                    btn_create = gr.Button("CREATE", variant="primary")
+                    btn_create_close = gr.Button("CANCEL")
             
             
         with gr.Row(visible=False) as row_prompt:
@@ -1638,7 +1643,7 @@ def create_app():
         ).then(
             gr_load_check, 
             [selected_model_id, selected_model_architectures, selected_model_pipeline_tag, selected_model_transformers, selected_model_size, selected_model_private, selected_model_gated, selected_model_model_type, selected_model_quantization],
-            [output,row_download,btn_deploy_load]
+            [output,row_download,btn_load]
         )
 
 
@@ -1655,21 +1660,21 @@ def create_app():
         )
 
 
-        btn_deploy_create.click(
+        btn_create.click(
             lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
             None, 
-            [row_select_vllm, btn_deploy_create_close, vllm_create_settings]
+            [row_select_vllm, btn_create_close, vllm_create_settings]
         )
         
-        btn_deploy_create_close.click(
+        btn_create_close.click(
             lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
             None, 
-            [row_select_vllm, btn_deploy_create_close, vllm_create_settings]
+            [row_select_vllm, btn_create_close, vllm_create_settings]
         )
 
 
 
-        btn_deploy_load.click(
+        btn_load.click(
             lambda: gr.update(label="Deploying"),
             None,
             output
@@ -1692,14 +1697,14 @@ def create_app():
         ).then(
             lambda: gr.update(visible=False), 
             None, 
-            btn_deploy_load
+            btn_load
         ).then(
             lambda: gr.update(visible=True), 
             None, 
             row_prompt
         )
 
-        btn_deploy_create.click(
+        btn_create.click(
             lambda: gr.update(label="Deploying"),
             None,
             output
