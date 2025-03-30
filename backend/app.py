@@ -515,18 +515,23 @@ def get_gpu_info():
             except Exception as e:
                 print(f'9 gpu_info {e}')
                 res_compute_capability = 0
-            
+
             if res_compute_capability == 0:
                 try:
                     res_name = pynvml.nvmlDeviceGetName(handle)
-                    if res_name in defaults_backend['compute_capability']:
-                        print(f'{res_name} exists with compute capability {defaults_backend["compute_capability"][res_name]}')
-                        res_compute_capability = f'{defaults_backend["compute_capability"][res_name]}'
+                    res_name_split = res_name.split(" ")[1:]
+                    res_name_splitted_str = " ".join(res_name_split)
+                    if res_name.lower() in defaults_backend['compute_capability']:
+                        print(f'-> res_name {res_name} exists with compute capability {defaults_backend["compute_capability"][res_name.lower()]}')
+                        res_compute_capability = f'{defaults_backend["compute_capability"][res_name.lower()]}'
+                    elif res_name_splitted_str.lower() in defaults_backend['compute_capability']:
+                        print(f'-> res_name_splitted_str {res_name_splitted_str} exists with compute capability {defaults_backend["compute_capability"][res_name.lower()]}')
+                        res_compute_capability = f'{defaults_backend["compute_capability"][res_name_splitted_str.lower()]}'
                     else:
-                        print(f'{res_name} not found in the database')
+                        print(f'{res_name.lower()} or {res_name_splitted_str.lower()} not found in database')
                 except Exception as e:
-                    print(f'99 res_compute_capability {e}')
-                
+                    print(f'99 res_compute_capability e: {e}')
+
             
             
             res_supported_str = ",".join(res_supported)
