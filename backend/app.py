@@ -799,29 +799,33 @@ async def docker_rest(request: Request):
                 elif "xoo4foo/" in req_data["req_image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
 
-
-                    # Run the Docker container
-                    run_command = [
-                        "/usr/bin/docker", "run",
-                        "--name", req_container_name,
-                        "--runtime", req_data["req_runtime"],
-                        "--shm-size", req_data["req_shm_size"],
-                        "--detach",
-                        "--env", f'NCCL_DEBUG=INFO',
-                        "--env", f'VLLM_PORT={req_data["req_port"]}',
-                        "--gpus", "all",
-                        "--publish", f'{req_data["req_port"]}:{req_data["req_port"]}',
-                        "--volume", "/logs:/logs",
-                        "--volume", "/models:/models",
-                        req_data["req_image"],
-                        "python", "app.py",
-                        f'--model {req_data["req_model"]}',
-                        f'--port {req_data["req_port"]}',
-                        f'--tensor-parallel-size {req_data["req_tensor_parallel_size"]}',
-                        f'--gpu-memory-utilization {req_data["req_gpu_memory_utilization"]}',
-                        f'--max-model-len {req_data["req_max_model_len"]}'
-                    ]
-                    subprocess.run(run_command, check=True)
+                    client.containers.run(
+                        image=req_data["req_image"],
+                        name=req_container_name,
+                        runtime=req_data["req_runtime"],
+                        shm_size=req_data["req_shm_size"],
+                        detach=True,
+                        environment={
+                            'NCCL_DEBUG': 'INFO',
+                            'VLLM_PORT': req_data["req_port"]
+                        },
+                        device_requests=[
+                            docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
+                        ],
+                        ports={f'{req_data["req_port"]}': req_data["req_port"]},
+                        volumes={
+                            '/logs': {'bind': '/logs', 'mode': 'rw'},
+                            '/models': {'bind': '/models', 'mode': 'rw'}
+                        },
+                        command=[
+                            "python", "app.py",
+                            "--model", req_data["req_model"],
+                            "--port", str(req_data["req_port"]),
+                            "--tensor-parallel-size", str(req_data["req_tensor_parallel_size"]),
+                            "--gpu-memory-utilization", str(req_data["req_gpu_memory_utilization"]),
+                            "--max-model-len", str(req_data["req_max_model_len"])
+                        ]
+                    )
 
                     return {"result_status": 200, "result_data": f'Container {req_container_name} started successfully'}
                 else:
