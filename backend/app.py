@@ -762,43 +762,43 @@ async def docker_rest(request: Request):
                     print(f' !!!!! create found "xoo4foo/" !')
                 
                 
-                res_db_gpu = await r.get('db_gpu')
+                # res_db_gpu = await r.get('db_gpu')
                 
-                all_used_ports = []
-                all_used_models = []
+                # all_used_ports = []
+                # all_used_models = []
                 
 
                 
-                if res_db_gpu is not None:
-                    db_gpu = json.loads(res_db_gpu)                    
-                    all_used_ports += [req_data["req_port"],req_data["req_port"]]
-                    all_used_models += [req_data["req_port"]]
-                    add_data = {
-                        "gpu": 0, 
-                        "gpu_info": "0",
-                        "running_model": str(req_container_name),
-                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                        "port_vllm": req_data["req_port"],
-                        "port_model": req_data["req_port"],
-                        "used_ports": str(all_used_ports),
-                        "used_models": str(all_used_models)
-                    }
+                # if res_db_gpu is not None:
+                #     db_gpu = json.loads(res_db_gpu)                    
+                #     all_used_ports += [req_data["req_port"],req_data["req_port"]]
+                #     all_used_models += [req_data["req_port"]]
+                #     add_data = {
+                #         "gpu": 0, 
+                #         "gpu_info": "0",
+                #         "running_model": str(req_container_name),
+                #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                #         "port_vllm": req_data["req_port"],
+                #         "port_model": req_data["req_port"],
+                #         "used_ports": str(all_used_ports),
+                #         "used_models": str(all_used_models)
+                #     }
                     
-                    db_gpu += [add_data]
-                    await r.set('db_gpu', json.dumps(db_gpu))                
+                #     db_gpu += [add_data]
+                #     await r.set('db_gpu', json.dumps(db_gpu))                
                 
-                else:
-                    add_data = {
-                        "gpu": 0, 
-                        "gpu_info": "0",
-                        "running_model": str(req_container_name),
-                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                        "port_vllm": str(req_data["req_port"]),
-                        "port_model": str(req_data["req_port"]),
-                        "used_ports": f'{str(req_data["req_port"])},{str(req_data["req_port"])}',
-                        "used_models": str(str(req_data["req_model"]))
-                    }
-                    await r.set('db_gpu', json.dumps(add_data))
+                # else:
+                #     add_data = {
+                #         "gpu": 0, 
+                #         "gpu_info": "0",
+                #         "running_model": str(req_container_name),
+                #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                #         "port_vllm": str(req_data["req_port"]),
+                #         "port_model": str(req_data["req_port"]),
+                #         "used_ports": f'{str(req_data["req_port"])},{str(req_data["req_port"])}',
+                #         "used_models": str(str(req_data["req_model"]))
+                #     }
+                #     await r.set('db_gpu', json.dumps(add_data))
 
                 print(f' ************ calling stop_vllm_container()')
                 res_stop_vllm_container = await stop_vllm_container()
