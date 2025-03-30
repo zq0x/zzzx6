@@ -1742,6 +1742,10 @@ def create_app():
             docker_api_components.to_list(),
             [output]
         ).then(
+            lambda: gr.update(visible=True, open=True), 
+            None, 
+            vllm_prompt_settings
+        ).then(
             lambda: gr.update(visible=False), 
             None, 
             btn_create
@@ -1749,6 +1753,10 @@ def create_app():
             lambda: gr.update(visible=False), 
             None, 
             btn_create_close
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_prompt
         )
 
 
