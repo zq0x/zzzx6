@@ -687,30 +687,38 @@ def disk_to_pd():
     rows = []
     try:
         disk_list = get_disk_data()
-
+        print(f' &&&&&& GOT disk_list {disk_list} ')
+        logging.info(f' &&&&&& GOT disk_list {disk_list}')
         for entry in disk_list:
             disk_info = ast.literal_eval(entry['disk_info'])
             print(f' &&&&&& GOT disk_info {disk_info} ')
+            logging.info(f' &&&&&& GOT disk_info {disk_info}')
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
-                "timestamp": entry.get("timestamp", "0"),
-                "device": disk_info.get("device", "0"),
-                "mountpoint": disk_info.get("mountpoint", "0"),
-                "fstype": disk_info.get("fstype", "0"),
-                "opts": disk_info.get("opts", "0"),
-                "usage_total": disk_info.get("usage_total", "0"),
-                "usage_used": disk_info.get("usage_used", "0"),
-                "usage_free": disk_info.get("usage_free", "0"),
-                "usage_percent": disk_info.get("usage_percent", "0"),
-                "io_read_count": disk_info.get("io_read_count", "0"),
-                "io_write_count": disk_info.get("io_write_count", "0")                
+                "timestamp": entry.get("timestamp", "0")               
             })
-
+            # rows.append({                
+            #     "disk_i": entry.get("disk_i", "0"),
+            #     "timestamp": entry.get("timestamp", "0"),
+            #     "device": disk_info.get("device", "0"),
+            #     "mountpoint": disk_info.get("mountpoint", "0"),
+            #     "fstype": disk_info.get("fstype", "0"),
+            #     "opts": disk_info.get("opts", "0"),
+            #     "usage_total": disk_info.get("usage_total", "0"),
+            #     "usage_used": disk_info.get("usage_used", "0"),
+            #     "usage_free": disk_info.get("usage_free", "0"),
+            #     "usage_percent": disk_info.get("usage_percent", "0"),
+            #     "io_read_count": disk_info.get("io_read_count", "0"),
+            #     "io_write_count": disk_info.get("io_write_count", "0")                
+            # })
+        print(f' &&&&&& returning rows {rows} ')
+        logging.info(f' &&&&&& returning rows {rows}')
         df = pd.DataFrame(rows)
         return df
     
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        logging.info(f' &&&&&& [ERROR] [disk_to_pd] GOT e {e}')
 
 disk_to_pd()
 
@@ -1521,22 +1529,18 @@ def create_app():
                     prompt_btn = gr.Button("PROMPT")
 
 
-        with gr.Accordion(("System Stats"), open=False) as system_stats:
-            with gr.Row() as row_gpu_dataframe:
-                with gr.Accordion(("GPU information"), open=False):
-                    gpu_dataframe = gr.Dataframe()
+        with gr.Accordion(("System Stats"), open=False) as acc_system_stats:
+            
+            with gr.Accordion(("GPU information"), open=False) as acc_gpu_dataframe:
+                gpu_dataframe = gr.Dataframe()
 
-                    
-            with gr.Row() as row_disk_dataframe:
-                with gr.Accordion(("Disk information"), open=False):
-                    disk_dataframe = gr.Dataframe()
+            with gr.Accordion(("Disk information"), open=False) as acc_disk_dataframe:
+                disk_dataframe = gr.Dataframe()
+
+            with gr.Accordion(("Network information"), open=False) as acc_network_dataframe:
+                network_dataframe = gr.Dataframe()
 
 
-            with gr.Row() as row_network_dataframe:
-                with gr.Accordion(("Network information"), open=False):
-                    network_dataframe = gr.Dataframe()
-        
-        
         disk_timer = gr.Timer(1,active=True)
         disk_timer.tick(disk_to_pd, outputs=disk_dataframe) 
 
