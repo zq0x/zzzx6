@@ -1442,11 +1442,11 @@ def create_app():
         gr.Markdown(
             """
             # Welcome!
-            Select a Hugging Face model and deploy it on a port
+            Select a _[Hugging Face Model](https://huggingface.co/models)_ and deploy it with vLLM
             
             **Note**: _[vLLM supported models list](https://docs.vllm.ai/en/latest/models/supported_models.html)_
-            or selected a tested model from here
-            """)
+            or """)
+        btn_tested = gr.Button("select a tested model", size="sm")
 
         input_search = gr.Textbox(placeholder="Type in a Hugging Face model or tag", show_label=False, autofocus=True)
         btn_search = gr.Button("Search")
@@ -1510,7 +1510,7 @@ def create_app():
                         
                         image=gr.Textbox(value="xoo4foo/zzvllm32:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
-                        shm_size=gr.Slider(1, 1000, step=1, value=8, label="shm_size", info=f'Max gpu mem'),
+                        shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
                         port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                         

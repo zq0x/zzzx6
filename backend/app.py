@@ -819,7 +819,7 @@ async def docker_rest(request: Request):
                         print(f'!!!!! check if container running 5 !! FOUND NEW CONTAINER !! SUCCESS')
                         
                         print(f' * ! * ! * trying to load ....  0 ')
-                        VLLM_URL = f'http://{req_container_name}:{req_data["req_port"]}/vllm'
+                        VLLM_URL = f'http://localhost:{req_data["req_port"]}/vllm'
                         print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
                         try:
                             response = requests.post(VLLM_URL, json={
