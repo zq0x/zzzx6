@@ -292,13 +292,13 @@ async def redis_timer_network():
 def get_disk_info():
     try:
         disk_usage = psutil.disk_usage('/')
-        print(f'-> Total: {disk_usage.total / (1024**3):.2f} GB')
-        print(f'-> Used: {disk_usage.used / (1024**3):.2f} GB')
-        print(f'-> Free: {disk_usage.free / (1024**3):.2f} GB')
-        print(f'-> Usage: {disk_usage.percent}%')
+        # print(f'-> Total: {disk_usage.total / (1024**3):.2f} GB')
+        # print(f'-> Used: {disk_usage.used / (1024**3):.2f} GB')
+        # print(f'-> Free: {disk_usage.free / (1024**3):.2f} GB')
+        # print(f'-> Usage: {disk_usage.percent}%')
 
         partitions = psutil.disk_partitions(all=False)
-        print(f'-> partitions: {partitions}')
+        # print(f'-> partitions: {partitions}')
         disk_info = []
         processed_devices = set()
         for partition in partitions:
@@ -306,10 +306,10 @@ def get_disk_info():
             if device not in processed_devices:
                 processed_devices.add(device)
                 
-                print(f'-> Processing partition: {partition}')
-                print(f'-> Device: {partition.device}')
-                print(f'-> Mountpoint: {partition.mountpoint}')
-                print(f'-> Filesystem type: {partition.fstype}')
+                # print(f'-> Processing partition: {partition}')
+                # print(f'-> Device: {partition.device}')
+                # print(f'-> Mountpoint: {partition.mountpoint}')
+                # print(f'-> Filesystem type: {partition.fstype}')
 
                 current_disk_info = {}
 
@@ -350,11 +350,7 @@ def get_disk_info():
                     "io_read_count": current_disk_info.get("io_read_count", "0"),
                     "io_write_count": current_disk_info.get("io_write_count", "0")
                 })
-            else:
-                print(f'-> Device: {partition.device} ALREADY PROCESSED!')
-                logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_disk_info] -> Device: {partition.device} ALREADY PROCESSED!')
-        print(f' &&&&&& BACKEND GOT disk_info {disk_info} ')
-        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_disk_info] -> &&&&&& BACKEND GOT disk_info {disk_info}')
+
         return disk_info
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')

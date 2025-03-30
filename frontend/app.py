@@ -687,32 +687,26 @@ def disk_to_pd():
     rows = []
     try:
         disk_list = get_disk_data()
-        print(f' &&&&&& GOT disk_list {disk_list} ')
-        logging.info(f' &&&&&& GOT disk_list {disk_list}')
         for entry in disk_list:
             disk_info = ast.literal_eval(entry['disk_info'])
-            print(f' &&&&&& GOT disk_info {disk_info} ')
-            logging.info(f' &&&&&& GOT disk_info {disk_info}')
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
                 "timestamp": entry.get("timestamp", "0")
             })
-            # rows.append({                
-            #     "disk_i": entry.get("disk_i", "0"),
-            #     "timestamp": entry.get("timestamp", "0"),
-            #     "device": disk_info.get("device", "0"),
-            #     "mountpoint": disk_info.get("mountpoint", "0"),
-            #     "fstype": disk_info.get("fstype", "0"),
-            #     "opts": disk_info.get("opts", "0"),
-            #     "usage_total": disk_info.get("usage_total", "0"),
-            #     "usage_used": disk_info.get("usage_used", "0"),
-            #     "usage_free": disk_info.get("usage_free", "0"),
-            #     "usage_percent": disk_info.get("usage_percent", "0"),
-            #     "io_read_count": disk_info.get("io_read_count", "0"),
-            #     "io_write_count": disk_info.get("io_write_count", "0")                
-            # })
-        print(f' &&&&&& returning rows {rows} ')
-        logging.info(f' &&&&&& returning rows {rows}')
+            rows.append({                
+                "disk_i": entry.get("disk_i", "0"),
+                "timestamp": entry.get("timestamp", "0"),
+                "device": disk_info.get("device", "0"),
+                "usage_percent": disk_info.get("usage_percent", "0"),
+                "mountpoint": disk_info.get("mountpoint", "0"),
+                "fstype": disk_info.get("fstype", "0"),
+                "opts": disk_info.get("opts", "0"),
+                "usage_total": disk_info.get("usage_total", "0"),
+                "usage_used": disk_info.get("usage_used", "0"),
+                "usage_free": disk_info.get("usage_free", "0"),                
+                "io_read_count": disk_info.get("io_read_count", "0"),
+                "io_write_count": disk_info.get("io_write_count", "0")                
+            })
         df = pd.DataFrame(rows)
         return df
     
