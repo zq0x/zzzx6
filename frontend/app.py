@@ -1811,28 +1811,14 @@ def create_app():
                     with gr.Row():
                         container_log_out = gr.Textbox(value=[], lines=20, interactive=False, elem_classes="table-cell", show_label=False, visible=False)
 
-                    with gr.Row():            
-                        btn_logs_file_open = gr.Button("Log File", scale=0)
-                        btn_logs_file_close = gr.Button("Close Log File", scale=0, visible=False)   
+                    with gr.Row():
                         btn_logs_docker_open = gr.Button("Docker Log", scale=0)
                         btn_logs_docker_close = gr.Button("Close Docker Log", scale=0, visible=False)     
-
-                        btn_logs_file_open.click(
-                            load_log_file,
-                            inputs=[container_name],
-                            outputs=[container_log_out]
-                        ).then(
-                            lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
-                        )
-                        
-                        btn_logs_file_close.click(
-                            lambda :[gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
-                        )
                         
                         btn_logs_docker_open.click(
                             docker_api_logs,
-                            inputs=[container_id],
-                            outputs=[container_log_out]
+                            [container_id],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_docker_open,btn_logs_docker_close, container_log_out]
                         )
@@ -1846,8 +1832,8 @@ def create_app():
 
                         stop_btn.click(
                             docker_api_stop,
-                            inputs=[container_id],
-                            outputs=[container_state]
+                            [container_id],
+                            [container_state]
                         ).then(
                             refresh_container,
                             outputs=[container_state]
@@ -1855,8 +1841,8 @@ def create_app():
 
                         delete_btn.click(
                             docker_api_delete,
-                            inputs=[container_id],
-                            outputs=[container_state]
+                            [container_id],
+                            [container_state]
                         ).then(
                             refresh_container,
                             outputs=[container_state]
@@ -1886,27 +1872,13 @@ def create_app():
                         container_log_out = gr.Textbox(value=[], lines=20, interactive=False, elem_classes="table-cell", show_label=False, visible=False)
                         
                     with gr.Row():
-                        btn_logs_file_open = gr.Button("Log File", scale=0)
-                        btn_logs_file_close = gr.Button("Close Log File", scale=0, visible=False)   
                         btn_logs_docker_open = gr.Button("Docker Log", scale=0)
                         btn_logs_docker_close = gr.Button("Close Docker Log", scale=0, visible=False)     
-
-                        btn_logs_file_open.click(
-                            load_log_file,
-                            inputs=[container_name],
-                            outputs=[container_log_out]
-                        ).then(
-                            lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
-                        )
-                        
-                        btn_logs_file_close.click(
-                            lambda :[gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
-                        )
                         
                         btn_logs_docker_open.click(
                             docker_api_logs,
-                            inputs=[container_id],
-                            outputs=[container_log_out]
+                            [container_id],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_docker_open,btn_logs_docker_close, container_log_out]
                         )
@@ -1920,17 +1892,17 @@ def create_app():
 
                         start_btn.click(
                             docker_api_start,
-                            inputs=[container_id],
-                            outputs=[container_state]
+                            [container_id],
+                            [container_state]
                         ).then(
                             refresh_container,
-                            outputs=[container_state]
+                            [container_state]
                         )
 
                         delete_btn.click(
                             docker_api_delete,
-                            inputs=[container_id],
-                            outputs=[container_state]
+                            [container_id],
+                            [container_state]
                         ).then(
                             refresh_container,
                             outputs=[container_state]
@@ -1969,8 +1941,8 @@ def create_app():
 
                         btn_logs_file_open.click(
                             load_log_file,
-                            inputs=[container_name],
-                            outputs=[container_log_out]
+                            [container_name],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
                         )
@@ -1981,8 +1953,8 @@ def create_app():
                         
                         btn_logs_docker_open.click(
                             docker_api_logs,
-                            inputs=[container_id],
-                            outputs=[container_log_out]
+                            [container_id],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_docker_open,btn_logs_docker_close, container_log_out]
                         )
@@ -2021,8 +1993,8 @@ def create_app():
 
                         btn_logs_file_open.click(
                             load_log_file,
-                            inputs=[container_name],
-                            outputs=[container_log_out]
+                            [container_name],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_file_open,btn_logs_file_close, container_log_out]
                         )
@@ -2033,8 +2005,8 @@ def create_app():
                         
                         btn_logs_docker_open.click(
                             docker_api_logs,
-                            inputs=[container_id],
-                            outputs=[container_log_out]
+                            [container_id],
+                            [container_log_out]
                         ).then(
                             lambda :[gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], None, [btn_logs_docker_open,btn_logs_docker_close, container_log_out]
                         )

@@ -48,7 +48,6 @@ services:
       - "1371:1371"
     container_name: container_vllm
     volumes:
-      - /logs:/logs
       - /models:/models
     shm_size: 8gb
     environment:
@@ -80,6 +79,7 @@ services:
     container_name: container_vllm2
     volumes:
       - /root/.cache/huggingface/hub:/root/.cache/huggingface/hub
+      - /models:/root/.cache/huggingface/hub
     shm_size: 8gb
     environment:
       - NCCL_DEBUG=INFO
