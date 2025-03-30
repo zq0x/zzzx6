@@ -1,0 +1,118 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: container_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+  
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "7861:7861"
+    container_name: container_backend
+    environment:
+      - REDIS_PORT=6379
+      - BACKEND_IP=0.0.0.0
+      - BACKEND_PORT=7861
+      - VLLM_PORT=1370
+    volumes:
+      - ./backend:/usr/src/app
+      - ./utils:/usr/src/app/utils   
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../logs:/usr/src/app/logs
+      - /models:/models
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    restart: unless-stopped
+
+  vllm:
+    build:
+      context: ./vllm
+    image: xoo4foo/zzvllm30:latest
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "1371:1371"
+    container_name: container_vllm
+    volumes:
+      - /logs:/logs
+      - /models:/models
+    shm_size: 8gb
+    environment:
+      - NCCL_DEBUG=INFO
+      - VLLM_PORT=1371
+    command: [
+      "python", "app.py",
+      "--model", "Qwen/Qwen2.5-1.5B-Instruct",
+      "--port", "1371",
+      "--tensor-parallel-size", "1",
+      "--gpu-memory-utilization", "0.85",
+      "--max-model-len", "4096"
+    ]
+
+  vllm2:
+    build:
+      context: ./vllm2
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "1370:1370"
+    container_name: container_vllm2
+    volumes:
+      - /root/.cache/huggingface/hub:/root/.cache/huggingface/hub
+    shm_size: 8gb
+    environment:
+      - NCCL_DEBUG=INFO
+    command: [
+      "--model", "Qwen/Qwen2.5-1.5B-Instruct",
+      "--port", "1370",
+      "--tensor-parallel-size", "1",
+      "--gpu-memory-utilization", "0.95",
+      "--max-model-len", "4096",
+    ]
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "7860:7860"
+    container_name: container_frontend
+    depends_on:
+      - backend
+      - vllm
+    environment:
+      - FRONTEND_IP=0.0.0.0
+      - FRONTEND_PORT=7860
+      - BACKEND_PORT=7861
+      - VLLM_PORT=1370
+    volumes:
+      - ./frontend:/usr/src/app
+      - ./utils:/usr/src/app/utils    
+      - ../logs:/usr/src/app/logs
+      - /models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    restart: unless-stopped
+
