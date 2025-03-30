@@ -121,7 +121,6 @@ def get_gpu_data():
 def get_vllm_data():
     try:
         res_vllm_data_all = json.loads(r.get('db_vllm'))
-        print(f' &&&&&&  !!! GOT res_vllm_data_all {res_vllm_data_all} ')
         return res_vllm_data_all
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -130,7 +129,6 @@ def get_vllm_data():
 def get_disk_data():
     try:
         res_disk_data_all = json.loads(r.get('db_disk'))
-        print(f' &&&&&& GOT res_disk_data_all {res_disk_data_all} ')
         return res_disk_data_all
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -1234,12 +1232,14 @@ def llm_create(*params):
             "req_max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
 
+
+
+
         if response.status_code == 200:
             print(f' [llm_create] >> got response == 200 building json ... {response} ')
             logging.exception(f'[llm_create] >> got response == 200 building json ...  {response} ')
             res_json = response.json()        
-            print(f' [llm_create] >> GOT RES_JSON: GLOBAL_SELECTED_MODEL_ID: {res_json} ')
-            logging.exception(f'[llm_create] >> GOT RES_JSON: {res_json} ')          
+            print(f' [llm_create] >> GOT RES_JSON: GLOBAL_SELECTED_MODEL_ID: {res_json} ')         
             return f'{res_json}'
         else:
             logging.exception(f'[llm_create] Request Error: {response}')
@@ -1510,7 +1510,7 @@ def create_app():
                         
                         image=gr.Textbox(value="xoo4foo/zzvllm32:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
-                        shm_size=gr.Slider(0.01, 1000, step=1, value=8, label="shm_size", info=f'Max gpu mem'),
+                        shm_size=gr.Slider(1, 1000, step=1, value=8, label="shm_size", info=f'Max gpu mem'),
                         
                         port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                         

@@ -157,39 +157,25 @@ async def redis_timer_network():
 
 def get_disk_info():
     try:
-        disk_usage = psutil.disk_usage('/')
-        # print(f'-> Total: {disk_usage.total / (1024**3):.2f} GB')
-        # print(f'-> Used: {disk_usage.used / (1024**3):.2f} GB')
-        # print(f'-> Free: {disk_usage.free / (1024**3):.2f} GB')
-        # print(f'-> Usage: {disk_usage.percent}%')
-
-        partitions = psutil.disk_partitions(all=False)
-        # print(f'-> partitions: {partitions}')
         disk_info = []
+        partitions = psutil.disk_partitions(all=False)
         processed_devices = set()
         for partition in partitions:
             device = partition.device
             if device not in processed_devices:
                 processed_devices.add(device)
-                
-                # print(f'-> Processing partition: {partition}')
-                # print(f'-> Device: {partition.device}')
-                # print(f'-> Mountpoint: {partition.mountpoint}')
-                # print(f'-> Filesystem type: {partition.fstype}')
-
                 current_disk_info = {}
-
                 try:                
                     current_disk_info['device'] = str(partition.device)
                     current_disk_info['mountpoint'] = str(partition.mountpoint)
                     current_disk_info['fstype'] = str(partition.fstype)
                     current_disk_info['opts'] = str(partition.opts)
                     
-                    usage = psutil.disk_usage(partition.mountpoint)
-                    current_disk_info['usage_total'] = str(usage.total)
-                    current_disk_info['usage_used'] = str(usage.used)
-                    current_disk_info['usage_free'] = str(usage.free)
-                    current_disk_info['usage_percent'] = str(usage.percent)
+                    disk_usage = psutil.disk_usage(partition.mountpoint)
+                    current_disk_info['usage_total'] = f'{disk_usage.total / (1024**3):.2f} GB'
+                    current_disk_info['usage_used'] = f'{disk_usage.used / (1024**3):.2f} GB'
+                    current_disk_info['usage_free'] = f'{disk_usage.free / (1024**3):.2f} GB'
+                    current_disk_info['usage_percent'] = f'{disk_usage.percent}%'
                     
                 except Exception as e:
                     print(f'[ERROR] [get_disk_info] Usage: [Permission denied] {e}')
@@ -814,8 +800,57 @@ async def docker_rest(request: Request):
                             "--max-model-len", str(req_data["req_max_model_len"])
                         ]
                     )
+                    
+                    print(f' !!!!! check if container running 0 !!')
+                    try:
+                        print(f' !!!!! check if container running 1 !!')
+                        res_container_list = client.containers.list(all=True)
+                        print(f' !!!!! check if container running 2 !!')
+                        vllm_container_created_running = [c for c in res_container_list if c.name == req_container_name and c.status == "running"]
+                        print(f' !!!!! check if container running 3 !! vllm_container_created_running: {len(vllm_container_created_running)}')
+                        vllm_containers_wait_i = 0
+                        vllm_containers_wait_threshold = 5
+                        while len(vllm_container_created_running) < 1 or vllm_containers_wait_i > vllm_containers_wait_threshold:
+                            print(f'!!!!! check if container running 4 .... container not found yet ..')
+                            res_container_list = client.containers.list(all=True)
+                            vllm_container_created_running = [c for c in res_container_list if c.name == req_container_name and c.status == "running"]
+                            vllm_containers_wait_i = vllm_containers_wait_i + 1
+                            time.sleep(5)
+                        print(f'!!!!! check if container running 5 !! FOUND NEW CONTAINER !! SUCCESS')
+                        
+                        print(f' * ! * ! * trying to load ....  0 ')
+                        VLLM_URL = f'http://{req_container_name}:{req_data["req_port"]}/vllm'
+                        print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
+                        try:
+                            response = requests.post(VLLM_URL, json={
+                                "req_type":"load",
+                                "max_model_len":int(req_data["req_max_model_len"]),
+                                "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
+                                "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
+                                "model":str(req_data["model_id"])
+                            })
+                            print(f' * ! * ! * trying to load ....  3 response {response}')
+                            if response.status_code == 200:
+                                print(f' * ! * ! * trying to load ....  4 status_code: {response.status_code}')
+                                
+                                response_json = response.json()
+                                print(f' * ! * ! * trying to load ....  5 response_json: {response_json}')
+                                print(f' * ! * ! * trying to load ....  6 response_json["result_data"]: {response_json["result_data"]}')
+                                return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
+                            else:
+                                print(f' * ! * ! * trying to load .... 7 ERRRRR')
+                                return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR'})
+                        
+                        except Exception as e:
+                                print(f' * ! * ! * trying to load .... 8 ERRRRR')
+                                return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
 
-                    return {"result_status": 200, "result_data": f'Container {req_container_name} started successfully'}
+                    except Exception as e:
+                        print(f'!!!!! check if container running 9 !! DID NUU FIND :(( error e: {e}') 
+                        return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 9'})
+                    
+
+                    
                 else:
                     print(f'ERROR no req_image found: req_data["req_image"]: {req_data["req_image"]}')
                     return JSONResponse({"result_status": 500, "result_data": f'"no req_data["req_image"] {req_data["req_image"]}'})
