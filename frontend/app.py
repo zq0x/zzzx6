@@ -909,10 +909,13 @@ def refresh_container():
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return f'err {str(e)}'
 
-
+            
 @dataclass
 class DockerApiComponents:
-    req_type: gr.Textbox
+    method: gr.Textbox
+    image: gr.Textbox
+    runtime: gr.Textbox
+    shm_size: gr.Slider
     port: gr.Slider
     max_model_len: gr.Slider
     tensor_parallel_size: gr.Number
@@ -927,7 +930,10 @@ class DockerApiComponents:
 
 @dataclass
 class DockerApiValues:
-    req_type: str
+    method: str
+    image: str
+    runtime: str
+    shm_size: int
     port: int
     max_model_len: int
     tensor_parallel_size: int
@@ -1192,11 +1198,11 @@ def llm_create(*params):
         req_params = DockerApiComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
-            "req_method":"create",
-            "req_image":"xoo4foo/zzvllm32:latest",
-            "req_runtime":"nvidia",
-            "req_shm_size":"8gb",
-            "req_port":"1373",
+            "req_method":req_params.method,
+            "req_image":req_params.image,
+            "req_runtime":req_params.runtime,
+            "req_shm_size":f'{str(req_params.shm_size)}gb',
+            "req_port":req_params.port,
             "req_model":GLOBAL_SELECTED_MODEL_ID,
             "req_tensor_parallel_size":req_params.tensor_parallel_size,
             "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
@@ -1475,7 +1481,11 @@ def create_app():
                 with gr.Accordion(("Create vLLM Parameters"), open=True, visible=False) as vllm_create_settings:
                     docker_api_components = DockerApiComponents(
 
-                        req_type=gr.Textbox(value="create", label="req_type", info=f"yee the req_type."),
+                        method=gr.Textbox(value="create", label="method", info=f"yee the req_method."),
+                        
+                        image=gr.Textbox(value="xoo4foo/zzvllm32:latest", label="image", info=f"Dockerhub vLLM image"),
+                        runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
+                        shm_size=gr.Slider(0.01, 1000, step=1, value=8, label="shm_size", info=f'Max gpu mem'),
                         
                         port=gr.Slider(1372, 1380, value=1372, label="port", info=f"Choose a port."),
                         
