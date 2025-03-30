@@ -331,6 +331,7 @@ def get_disk_info():
                 "io_read_count": current_disk_info.get("io_read_count", "0"),
                 "io_write_count": current_disk_info.get("io_write_count", "0")
             })
+        print(f' &&&&&& BACKEND GOT disk_info {disk_info} ')
         return disk_info
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -797,17 +798,11 @@ async def docker_rest(request: Request):
                 
                 elif "xoo4foo/" in req_data["req_image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
-                    # Build the Docker image (if needed)
-                    build_command = [
-                        "docker", "build",
-                        "-t", req_data["req_image"],
-                        f'./{req_container_name}'
-                    ]
-                    subprocess.run(build_command, check=True)
+
 
                     # Run the Docker container
                     run_command = [
-                        "docker", "run",
+                        "/usr/bin/docker", "run",
                         "--name", req_container_name,
                         "--runtime", req_data["req_runtime"],
                         "--shm-size", req_data["req_shm_size"],
@@ -837,8 +832,7 @@ async def docker_rest(request: Request):
 
             except Exception as e:
                 print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-                r.delete(f'running_model:{str(req_data["req_model"])}')
-                return JSONResponse({"result_status": 404, "result_data": f'{req_data["max_model_len"]}'})
+                return JSONResponse({"result_status": 500, "result_data": f'{e}'})
 
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')

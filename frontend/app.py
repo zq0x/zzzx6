@@ -121,6 +121,7 @@ def get_gpu_data():
 def get_disk_data():
     try:
         res_disk_data_all = json.loads(r.get('db_disk'))
+        print(f' &&&&&& GOT res_disk_data_all {res_disk_data_all} ')
         return res_disk_data_all
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -689,7 +690,7 @@ def disk_to_pd():
 
         for entry in disk_list:
             disk_info = ast.literal_eval(entry['disk_info'])
-
+            print(f' &&&&&& GOT disk_info {disk_info} ')
             rows.append({                
                 "disk_i": entry.get("disk_i", "0"),
                 "device": disk_info.get("device", "0"),
