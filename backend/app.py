@@ -571,6 +571,7 @@ async def redis_timer_gpu():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     asyncio.create_task(redis_timer_gpu())
+    asyncio.create_task(redis_timer_disk())
     asyncio.create_task(redis_timer_network())
     yield
 
