@@ -413,7 +413,7 @@ def get_gpu_info():
             
             
             try:
-                res_name = pynvml.nvmlDeviceGetName(handle).decode('utf-8').strip()
+                res_name = pynvml.nvmlDeviceGetName(handle)
                 current_gpu_info['res_name'] = f'{res_name}'
             except Exception as e:
                 print(f'00 gpu_info {e}')
@@ -518,12 +518,12 @@ def get_gpu_info():
             
             if res_compute_capability == 0:
                 try:
-                    res_name = pynvml.nvmlDeviceGetName(handle).decode('utf-8').strip()
-                    if str(res_name) in defaults_backend['compute_capability']:
-                        print(f"{res_name} exists with compute capability {defaults_backend['compute_capability'][res_name]}")
-                        res_compute_capability = f'{defaults_backend['compute_capability'][res_name]}'
+                    res_name = pynvml.nvmlDeviceGetName(handle)
+                    if res_name in defaults_backend['compute_capability']:
+                        print(f'{res_name} exists with compute capability {defaults_backend["compute_capability"][res_name]}')
+                        res_compute_capability = f'{defaults_backend["compute_capability"][res_name]}'
                     else:
-                        print(f"{res_name} not found in the database")
+                        print(f'{res_name} not found in the database')
                 except Exception as e:
                     print(f'99 res_compute_capability {e}')
                 
