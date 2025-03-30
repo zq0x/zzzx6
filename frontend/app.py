@@ -1189,12 +1189,10 @@ def llm_create(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"create",
-            "req_image":"xoo4foo/zzvllm30:latest",
+            "req_image":"xoo4foo/zzvllm31:latest",
             "req_runtime":"nvidia",
-            "req_driver":"nvidia",
-            "req_capabilities":"gpu",
-            "req_port":"1373",
             "req_shm_size":"8gb",
+            "req_port":"1373",
             "req_model":GLOBAL_SELECTED_MODEL_ID,
             "req_tensor_parallel_size":req_params.tensor_parallel_size,
             "req_gpu_memory_utilization":req_params.gpu_memory_utilization,

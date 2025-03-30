@@ -770,19 +770,6 @@ async def docker_rest(request: Request):
                         build={"context": f'./{req_container_name}'},
                         image=req_data["req_image"],
                         runtime=req_data["req_runtime"],
-                        deploy={
-                            "resources": {
-                                "reservations": {
-                                    "devices": [
-                                        {
-                                            "driver": f'{req_data["req_driver"]}',
-                                            "count": "all",
-                                            "capabilities": [f'{req_data["req_capabilities"]}']
-                                        }
-                                    ]
-                                }
-                            }
-                        },
                         ports={
                             f'{req_data["req_port"]}/tcp': ("0.0.0.0", req_data["req_port"])
                         },
