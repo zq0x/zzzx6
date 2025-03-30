@@ -923,6 +923,7 @@ class DockerApiComponents:
     max_model_len: gr.Slider
     tensor_parallel_size: gr.Number
     gpu_memory_utilization: gr.Slider
+    prompt_in: gr.Textbox
     top_p: gr.Slider
     temperature: gr.Slider
     max_tokens: gr.Slider
@@ -937,6 +938,7 @@ class DockerApiValues:
     max_model_len: int
     tensor_parallel_size: int
     gpu_memory_utilization: int
+    prompt_in: str
     top_p: int
     temperature: int
     max_tokens: int
@@ -1478,6 +1480,20 @@ def create_app():
                     
                 with gr.Accordion(("Create vLLM Parameters"), open=True, visible=False) as vllm_create_settings:
                     docker_api_components = DockerApiComponents(
+
+                        req_type=gr.Textbox(value="create", label="req_type", info=f"yee the req_type."),
+                        
+                        port=gr.Slider(1372, 1380, value=1372, label="port", info=f"Choose a port."),
+                        
+                        prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=False),
+                        
+                        top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", visible=False, info=f'Float that controls the cumulative probability of the top tokens to consider'),
+                        
+                        temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", visible=False, info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
+                        
+                        max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", visible=False, info=f'Maximum number of tokens to generate per output sequence'),
+                        
+                        
                         max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
                         gpu_memory_utilization=gr.Slider(0.2, 0.99, value=0.87, label="gpu_memory_utilization", info=f"The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.")
