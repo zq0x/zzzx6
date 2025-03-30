@@ -1487,7 +1487,7 @@ def create_app():
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(0.01, 1000, step=1, value=8, label="shm_size", info=f'Max gpu mem'),
                         
-                        port=gr.Slider(1372, 1380, value=1372, label="port", info=f"Choose a port."),
+                        port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                         
                         prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=False),
                         
@@ -1734,13 +1734,21 @@ def create_app():
             None,
             output
         ).then(
+            lambda: gr.update(open=False), 
+            None, 
+            vllm_create_settings    
+        ).then(
             llm_create,
             docker_api_components.to_list(),
             [output]
         ).then(
-            lambda: gr.update(open=False), 
+            lambda: gr.update(visible=False), 
             None, 
-            vllm_load_settings
+            btn_create
+        ).then(
+            lambda: gr.update(visible=False), 
+            None, 
+            btn_create_close
         )
 
 
