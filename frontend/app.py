@@ -18,8 +18,33 @@ import huggingface_hub
 from huggingface_hub import snapshot_download
 import logging
 import psutil
+from faster_whisper import WhisperModel
 
 
+# Initialize the model (will download on first run)
+model_size = "small"  # tiny, base, small, medium, large-v1, large-v2
+model = None
+
+def load_audio_model():
+    global model
+    if model is None:
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+
+def transcribe_audio(audio_file):
+    # Load model if not loaded
+    load_audio_model()
+    
+    # Transcribe the audio file
+    start_time = time.time()
+    segments, info = model.transcribe(audio_file)
+    
+    # Combine all segments into one text
+    full_text = "\n".join([segment.text for segment in segments])
+    
+    # Calculate processing time
+    processing_time = time.time() - start_time
+    
+    return f"Detected language: {info.language}\n\n{full_text}\n\nProcessing time: {processing_time:.2f}s"
 
 
 
@@ -1602,39 +1627,40 @@ def create_app():
         network_timer.tick(network_to_pd, outputs=network_dataframe)
 
 
+
+
+
+
+
         with gr.Column(scale=1, visible=True) as vllm_running_engine_argumnts_btn:
             vllm_running_engine_arguments_show = gr.Button("LOAD VLLM CREATEEEEEEEEUUUUHHHHHHHH", variant="primary")
             vllm_running_engine_arguments_close = gr.Button("CANCEL")
-           
-        # with gr.Row(visible=False) as vllm_create_settings:
-        #     with gr.Column(scale=4):
-        #         with gr.Accordion(("Create Parameters"), open=False):
-        #             input_components = InputComponents(
-        #                 param0=gr.Textbox(placeholder="pasdsssda", value="genau", label="Textbox", info="yes a textbox"),
-        #                 param1=gr.Slider(2, 20, value=1, label="Count", info="Choose between 2 and 20"),
-        #                 param2=gr.Number(label="Number Input", value="2", info="Enter a number"),
-        #                 quantity=gr.Slider(2, 20, value=4, label="Count", info="Choose between 2 and 20"),
-        #                 animal=gr.Dropdown(["cat", "dog", "bird"], label="Animal", info="Will add more animals later!"),
-        #                 countries=gr.CheckboxGroup(["USA", "Japan", "Pakistan"], label="Countries", info="Where are they from?"),
-        #                 place=gr.Radio(["park", "zoo", "road"], label="Location", info="Where did they go?"),
-        #                 activity_list=gr.Dropdown(["ran", "swam", "ate", "slept"], value=["swam", "slept"], multiselect=True, label="Activity", info="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed auctor, nisl eget ultricies aliquam, nunc nisl aliquet nunc, eget aliquam nisl nunc vel nisl."),
-        #                 morning=gr.Checkbox(label="Morning", value=True, info="Did they do it in the morning?")
-        #             )
 
                 
 
     
 
+                        
+        with gr.Row(visible=True) as row_audio:
+            gr.Markdown("## Faster-Whisper Audio Transcription")
+            gr.Markdown("Upload an audio file to transcribe it using a faster-whisper model.")
+            with gr.Column(scale=2):
+                audio_input = gr.Audio(label="Upload Audio", type="filepath")
+                
 
+            with gr.Column(scale=1):
+                text_output = gr.Textbox(label="Transcription", lines=10)
+            
+            transcribe_btn = gr.Button("Transcribe")
+            transcribe_btn.click(
+                transcribe_audio,
+                inputs=audio_input,
+                outputs=text_output
+            )
         
                 
-                
-                
-                
-                
 
-
-         
+            
         btn_interface = gr.Button("Load Interface",visible=False)
         @gr.render(inputs=[selected_model_pipeline_tag, selected_model_id], triggers=[btn_interface.click])
         def show_split(text_pipeline, text_model):

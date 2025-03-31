@@ -688,7 +688,10 @@ async def docker_rest(request: Request):
             try:
                 req_container_name = str(req_data["req_model"]).replace('/', '_')
                 ts = str(int(datetime.now().timestamp()))
-                req_container_name = f'container_vllm_{req_container_name}_{ts}'
+                # req_container_name = f'container_vllm_{req_container_name}_{ts}'
+                
+                req_container_name = f'container_vllm_asdf'
+                
                 print(f' ************ calling req_container_name: {req_container_name}')
                 
                 if req_data["req_image"] == "vllm/vllm-openai:latest":
@@ -820,7 +823,7 @@ async def docker_rest(request: Request):
                         print(f'!!!!! check if container running 5 !! FOUND NEW CONTAINER !! SUCCESS')
                         
                         print(f' * ! * ! * trying to load ....  0 ')
-                        VLLM_URL = f'http://{req_container_name}]:{req_data["req_port"]}/vllm'
+                        VLLM_URL = f'http://{req_container_name}:{req_data["req_port"]}/vllm'
                         print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
                         print(f' * ! * ! * but first sleeping for 120 sec ...')
                         for i in range(0,120):
