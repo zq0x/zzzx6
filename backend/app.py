@@ -825,8 +825,8 @@ async def docker_rest(request: Request):
                         print(f' * ! * ! * trying to load ....  0 ')
                         VLLM_URL = f'http://{req_container_name}:{req_data["req_port"]}/vllm'
                         print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
-                        print(f' * ! * ! * but first sleeping for 120 sec ...')
-                        for i in range(0,120):
+                        print(f' * ! * ! * but first sleeping for 60 sec ...')
+                        for i in range(0,60):
                             print(f' * ! * ! * zzz ZZZ zzz {i} ... * ! * ! *')
                             time.sleep(1)
                         
