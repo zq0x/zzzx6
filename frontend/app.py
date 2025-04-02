@@ -652,7 +652,7 @@ def network_to_pd():
             
             
         df = pd.DataFrame(rows)
-        return df
+        return df,rows[0]["current_dl"]
     
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
@@ -1253,6 +1253,7 @@ def create_app():
                         
         output = gr.Textbox(label="Output", show_label=True, visible=True)   
         # aaaa
+        kekw = gr.Textbox(label="kekw")
         with gr.Row(visible=True) as row_vllm:
             with gr.Column(scale=4):
                 
@@ -1349,7 +1350,7 @@ def create_app():
         gpu_timer.tick(gpu_to_pd, outputs=gpu_dataframe)
 
         network_timer = gr.Timer(1,active=True)
-        network_timer.tick(network_to_pd, outputs=network_dataframe)
+        network_timer.tick(network_to_pd, outputs=[network_dataframe,kekw])
 
 
 
