@@ -25,7 +25,7 @@ r = redis.Redis(host="redis", port=int(os.getenv("REDIS_PORT", 6379)), db=0)
 LOG_PATH= './logs'
 LOGFILE_CONTAINER = f'{LOG_PATH}/logfile_container_backend.log'
 os.makedirs(os.path.dirname(LOGFILE_CONTAINER), exist_ok=True)
-logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.info, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started logging in {LOGFILE_CONTAINER}')
 # print(f'** connecting to pynvml ... ')
 pynvml.nvmlInit()
@@ -695,11 +695,12 @@ async def docker_rest(request: Request):
                         ]
                     })
                     if response.status_code == 200:
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] status_code: {response.status_code}')
                         logging.info(f' [dockerrest]  status_code: {response.status_code}') 
                         response_json = response.json()
-                        logging.info(f' [dockerrest]  response_json: {response_json}') 
-                        response_json["result_data"] = response_json["result_data"]
-                        return response_json["result_data"]                
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response_json: {response.response_json}')
+                        logging.info(f' [dockerrest]  response_json: {response_json}')
+                        return JSONResponse({"result_status": 500, "result_data": f'{response_json}'})              
                     else:
                         logging.info(f' [dockerrest] response: {response}')
                         return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
