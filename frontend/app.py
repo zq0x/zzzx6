@@ -819,136 +819,6 @@ def gpu_to_pd():
 gpu_to_pd()
 
 
-VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
-
-
-# def vllm_api(request: gr.Request): 
-# def vllm_api(req_type,max_tokens=None,temperature=None,prompt_in=None):
-
-
-def vllm_api(
-                req_type,
-                model=None,
-                pipeline_tag=None,
-                max_model_len=None,
-                enforce_eager=None,
-                enable_prefix_caching=None,
-                pipeline_parallel_size=None,
-                tensor_parallel_size=None,
-                max_parallel_loading_workers=None,
-                kv_cache_dtype=None,
-                port=None,
-                swap_space=None,                
-                gpu_memory_utilization=None,
-                enable_chunked_prefill=None,
-                trust_remote_code=None,
-                load_format=None,
-                dtype=None,
-                quantization_param_path=None,
-                block_size=None,
-                num_lookahead_slots=None,
-                seed=None,
-                num_gpu_blocks_override=None,
-                max_num_batched_tokens=None,
-                max_num_seqs=None,
-                max_logprobs=None,
-                quantization=None,
-                max_content_len_to_capture=None,
-                tokenizer_pool_size=None,
-                tokenizer_pool_type=None,
-                tokenizer_pool_extra_config=None,
-                enable_lora=None,
-                max_loras=None,
-                max_lora_rank=None,
-                lora_extra_vocab_size=None,
-                lora_dtype=None,
-                max_cpu_loras=None,
-                device=None,
-                image_input_type=None,
-                image_token_id=None,
-                image_input_shape=None,
-                image_feature_size=None,
-                scheduler_delay_factor=None,
-                speculative_model=None,
-                num_speculative_tokens=None,
-                speculative_max_model_len=None,
-                model_loader_extra_config=None,
-                engine_use_ray=None,
-                disable_log_requests=None,
-                max_log_len=None,
-                top_p=None,
-                temperature=None,
-                max_tokens=None,
-                prompt_in=None
-             ):
-    
-    try:
-
-        FALLBACK_VLLM_API = {}
-        logging.info(f' [vllm_api] req_type: {req_type}')
-        logging.info(f' [vllm_api] model: {model}')
-        logging.info(f' [vllm_api] pipeline_tag: {pipeline_tag}')
-        logging.info(f' [vllm_api] max_model_len: {max_model_len}')
-        logging.info(f' [vllm_api] tensor_parallel_size: {tensor_parallel_size}')
-        logging.info(f' [vllm_api] gpu_memory_utilization: {gpu_memory_utilization}')
-        logging.info(f' [vllm_api] top_p: {top_p}')
-        logging.info(f' [vllm_api] temperature: {temperature}')
-        logging.info(f' [vllm_api] max_tokens: {max_tokens}')
-        logging.info(f' [vllm_api] prompt_in: {prompt_in}')
-
-        if req_type == "load":
-            response = "if you see this it didnt work :/"  
-            
-            logging.info(f' [vllm_api] [{req_type}] gpu_memory_utilization: {gpu_memory_utilization}')
-            response = requests.post(VLLM_URL, json={
-                "req_type":"load",
-                "max_model_len":int(max_model_len),
-                "tensor_parallel_size":int(tensor_parallel_size),
-                "gpu_memory_utilization":float(gpu_memory_utilization),
-                "model":str(model)
-            })
-            if response.status_code == 200:
-                logging.info(f' [vllm_api] [{req_type}] status_code: {response.status_code}') 
-                response_json = response.json()
-                logging.info(f' [vllm_api] [{req_type}] response_json: {response_json}') 
-                response_json["result_data"] = response_json["result_data"]
-                return response_json["result_data"]                
-            else:
-                logging.info(f' [vllm_api] [{req_type}] response: {response}')
-                FALLBACK_VLLM_API["result_data"] = f'{response}'
-                return FALLBACK_VLLM_API
-    
-    
-
-        if req_type == "generate":
-            response = "if you see this it didnt work :/"  
-            logging.info(f' [vllm_api] [{req_type}] temperature: {temperature}')
-            response = requests.post(VLLM_URL, json={
-                "req_type":"generate",
-                "prompt":str(prompt_in),
-                "temperature":float(temperature),
-                "top_p":float(top_p),
-                "max_tokens":int(max_tokens)
-            })
-            if response.status_code == 200:
-                logging.info(f' [vllm_api] [{req_type}] status_code: {response.status_code}') 
-                response_json = response.json()
-                logging.info(f' [vllm_api] [{req_type}] response_json: {response_json}') 
-                return response_json["result_data"]                
-            else:
-                logging.info(f' [vllm_api] response: {response}')
-                FALLBACK_VLLM_API["result_data"] = f'{response}'
-                return FALLBACK_VLLM_API
-    
-    
-    except Exception as e:
-        logging.exception(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_api] Exception occured: {e}', exc_info=True)
-        FALLBACK_VLLM_API["result_data"] = f'{e}'
-        return FALLBACK_VLLM_API
-
-
-
-
 
 
 def refresh_container():
@@ -973,10 +843,6 @@ class VllmCreateComponents:
     max_model_len: gr.Slider
     tensor_parallel_size: gr.Number
     gpu_memory_utilization: gr.Slider
-    prompt_in: gr.Textbox
-    top_p: gr.Slider
-    temperature: gr.Slider
-    max_tokens: gr.Slider
     
     def to_list(self) -> list:
         return [getattr(self, f.name) for f in fields(self)]
@@ -991,11 +857,6 @@ class VllmCreateValues:
     max_model_len: int
     tensor_parallel_size: int
     gpu_memory_utilization: int
-    prompt_in: str
-    top_p: int
-    temperature: int
-    max_tokens: int
-
             
 @dataclass
 class VllmLoadComponents:
@@ -1007,10 +868,6 @@ class VllmLoadComponents:
     max_model_len: gr.Slider
     tensor_parallel_size: gr.Number
     gpu_memory_utilization: gr.Slider
-    prompt_in: gr.Textbox
-    top_p: gr.Slider
-    temperature: gr.Slider
-    max_tokens: gr.Slider
     
     def to_list(self) -> list:
         return [getattr(self, f.name) for f in fields(self)]
@@ -1025,16 +882,13 @@ class VllmLoadValues:
     max_model_len: int
     tensor_parallel_size: int
     gpu_memory_utilization: int
-    prompt_in: str
-    top_p: int
-    temperature: int
-    max_tokens: int
 
 
 
 @dataclass
 class PromptComponents:
-    prompt_in: gr.Textbox
+    port: gr.Slider
+    prompt: gr.Textbox
     top_p: gr.Slider
     temperature: gr.Slider
     max_tokens: gr.Slider
@@ -1044,7 +898,8 @@ class PromptComponents:
 
 @dataclass
 class PromptValues:
-    prompt_in: str
+    port: int
+    prompt: str
     top_p: int
     temperature: int
     max_tokens: int
@@ -1264,7 +1119,7 @@ def llm_prompt(*params):
         req_params = PromptComponents(*params)
 
         DEFAULTS_PROMPT = {
-            "prompt_in": "Tell a joke",
+            "prompt": "Tell a joke",
             "top_p": 0.95,
             "temperature": 0.8,
             "max_tokens": 150
@@ -1272,7 +1127,7 @@ def llm_prompt(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"generate",
-            "prompt_in": getattr(req_params, "prompt_in", DEFAULTS_PROMPT["prompt_in"]),
+            "prompt": getattr(req_params, "prompt", DEFAULTS_PROMPT["prompt"]),
             "top_p":getattr(req_params, "top_p", DEFAULTS_PROMPT["top_p"]),
             "temperature":getattr(req_params, "temperature", DEFAULTS_PROMPT["temperature"]),
             "max_tokens":getattr(req_params, "max_tokens", DEFAULTS_PROMPT["max_tokens"])
@@ -1481,16 +1336,7 @@ def create_app():
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
-                        port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
-                        
-                        prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=False),
-                        
-                        top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", visible=False, info=f'Float that controls the cumulative probability of the top tokens to consider'),
-                        
-                        temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", visible=False, info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
-                        
-                        max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", visible=False, info=f'Maximum number of tokens to generate per output sequence'),
-                        
+                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),                        
                         
                         max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
@@ -1509,17 +1355,8 @@ def create_app():
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
-                        port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
-                        
-                        prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=False),
-                        
-                        top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", visible=False, info=f'Float that controls the cumulative probability of the top tokens to consider'),
-                        
-                        temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", visible=False, info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
-                        
-                        max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", visible=False, info=f'Maximum number of tokens to generate per output sequence'),
-                        
-                        
+                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
+                                                                        
                         max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
                         gpu_memory_utilization=gr.Slider(0.2, 0.99, value=0.87, label="gpu_memory_utilization", info=f"The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.")
@@ -1545,7 +1382,8 @@ def create_app():
             with gr.Column(scale=2):
                 with gr.Accordion(("Prompt Parameters"), open=True) as vllm_prompt_settings:
                     llm_prompt_components = PromptComponents(
-                    prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
+                    port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
+                    prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
                     top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),
                     temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
                     max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", info=f'Maximum number of tokens to generate per output sequence')
@@ -1658,14 +1496,6 @@ def create_app():
         
        
         load_btn = gr.Button("Load into vLLM (port: 1370)", visible=True)
-
-        
-        
-
-
-        # load_btn.click(lambda model, pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in: vllm_api("load", model, pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in), inputs=[model_dropdown, selected_model_pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in], outputs=prompt_out)
-            
-        # prompt_btn.click(lambda model, pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in: vllm_api("generate", model, pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in), inputs=[model_dropdown, selected_model_pipeline_tag, max_model_len, tensor_parallel_size, gpu_memory_utilization, top_p, temperature, max_tokens, prompt_in], outputs=prompt_out)
 
         
 
