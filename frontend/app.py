@@ -1500,20 +1500,6 @@ def create_app():
                     
                     
 
-                    
-                    
-                
-                
-
-                                        
-                
-                
-                with gr.Accordion(("Load vLLM Parameters"), open=False, visible=False) as vllm_load_settings:
-                    vllm_load_components = VllmLoadComponents(
-                        max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
-                        tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
-                        gpu_memory_utilization=gr.Slider(0.2, 0.99, value=0.87, label="gpu_memory_utilization", info=f"The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.")
-                    )
 
 
             with gr.Column(scale=1):
@@ -1990,7 +1976,7 @@ def create_app():
         ).then(
             lambda: gr.update(visible=True),
             None,
-            vllm_load_settings
+            acc_load
         ).then(
             lambda: gr.update(visible=True),
             None,
@@ -2002,7 +1988,7 @@ def create_app():
         ).then(
             lambda: gr.update(visible=True, open=False),
             None,
-            vllm_load_settings
+            acc_load
         )
 
 
@@ -2063,13 +2049,13 @@ def create_app():
         vllm_running_engine_arguments_show.click(
             lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
             None, 
-            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
+            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, acc_load]
         )
         
         vllm_running_engine_arguments_close.click(
             lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
             None, 
-            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
+            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, acc_load]
         )
 
 
@@ -2082,7 +2068,7 @@ def create_app():
         ).then(
             lambda: gr.update(visible=True, open=False), # hier
             None, 
-            vllm_load_settings    
+            acc_load    
         ).then(
             lambda: gr.update(visible=True), # hier
             None, 
@@ -2153,7 +2139,7 @@ def create_app():
         vllms.change(
             toggle_vllm_load_create,
             vllms,
-            [vllm_load_settings, vllm_load_actions, acc_create, vllm_create_actions]
+            [acc_load, vllm_load_actions, acc_create, vllm_create_actions]
         )
 
 
