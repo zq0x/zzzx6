@@ -937,7 +937,7 @@ def refresh_container():
 
             
 @dataclass
-class DockerApiComponents:
+class VllmCreateComponents:
     method: gr.Textbox
     image: gr.Textbox
     runtime: gr.Textbox
@@ -955,7 +955,41 @@ class DockerApiComponents:
         return [getattr(self, f.name) for f in fields(self)]
 
 @dataclass
-class DockerApiValues:
+class VllmCreateValues:
+    method: str
+    image: str
+    runtime: str
+    shm_size: int
+    port: int
+    max_model_len: int
+    tensor_parallel_size: int
+    gpu_memory_utilization: int
+    prompt_in: str
+    top_p: int
+    temperature: int
+    max_tokens: int
+
+            
+@dataclass
+class VllmLoadComponents:
+    method: gr.Textbox
+    image: gr.Textbox
+    runtime: gr.Textbox
+    shm_size: gr.Slider
+    port: gr.Slider
+    max_model_len: gr.Slider
+    tensor_parallel_size: gr.Number
+    gpu_memory_utilization: gr.Slider
+    prompt_in: gr.Textbox
+    top_p: gr.Slider
+    temperature: gr.Slider
+    max_tokens: gr.Slider
+    
+    def to_list(self) -> list:
+        return [getattr(self, f.name) for f in fields(self)]
+
+@dataclass
+class VllmLoadValues:
     method: str
     image: str
     runtime: str
@@ -987,71 +1021,6 @@ class PromptValues:
     top_p: int
     temperature: int
     max_tokens: int
-
-
-
-@dataclass
-class VllmCreateComponents:
-    max_model_len: gr.Slider
-    tensor_parallel_size: gr.Number
-    gpu_memory_utilization: gr.Slider
-    
-    def to_list(self) -> list:
-        return [getattr(self, f.name) for f in fields(self)]
-
-@dataclass
-class VllmCreateValues:
-    max_model_len: int
-    tensor_parallel_size: int
-    gpu_memory_utilization: int
-
-@dataclass
-class VllmLoadComponents:
-    max_model_len: gr.Slider
-    tensor_parallel_size: gr.Number
-    gpu_memory_utilization: gr.Slider
-    
-    def to_list(self) -> list:
-        return [getattr(self, f.name) for f in fields(self)]
-
-@dataclass
-class VllmLoadValues:
-    max_model_len: int
-    tensor_parallel_size: int
-    gpu_memory_utilization: int
-
-# Define the InputComponents and InputValues classes
-@dataclass
-class InputComponents:
-    param1: gr.Slider
-    param2: gr.Number
-    quantity: gr.Slider
-    animal: gr.Dropdown
-    countries: gr.CheckboxGroup
-    place: gr.Radio
-    activity_list: gr.Dropdown
-    morning: gr.Checkbox
-    param0: gr.Textbox
-    
-    def to_list(self) -> list:
-        return [getattr(self, f.name) for f in fields(self)]
-
-@dataclass
-class InputValues:    
-    param1: int
-    param2: int
-    quantity: int
-    animal: str
-    countries: list
-    place: str
-    activity_list: list
-    morning: bool
-    param0: str
-
-
-
-
-
 
 
 BACKEND_URL = f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest'
@@ -1175,6 +1144,7 @@ def load_vllm_running2(*params):
         return f'{e}'
     
     
+    
 def llm_load(*params):
     
     try:
@@ -1184,23 +1154,26 @@ def llm_load(*params):
         logging.exception(f'[llm_load] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
         logging.exception(f'[llm_load] >> got params: {params} ')
                 
-        req_params = VllmLoadValues(*params)
-
+        req_params = VllmLoadComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
-            "req_method":"test",
-            "model_id":GLOBAL_SELECTED_MODEL_ID,
-            "max_model_len":req_params.max_model_len,
-            "tensor_parallel_size":req_params.tensor_parallel_size,
-            "gpu_memory_utilization":req_params.gpu_memory_utilization
+            "req_method":req_params.method,
+            "req_image":req_params.image,
+            "req_runtime":req_params.runtime,
+            "req_shm_size":f'{str(req_params.shm_size)}gb',
+            "req_port":req_params.port,
+            "req_model":GLOBAL_SELECTED_MODEL_ID,
+            "req_tensor_parallel_size":req_params.tensor_parallel_size,
+            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
+            "req_max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
 
+
         if response.status_code == 200:
-            print(f' !?!?!?!? got response == 200 building json ... {response} ')
-            logging.exception(f'!?!?!?!? got response == 200 building json ...  {response} ')
+            print(f' [llm_load] >> got response == 200 building json ... {response} ')
+            logging.exception(f'[llm_load] >> got response == 200 building json ...  {response} ')
             res_json = response.json()        
-            print(f' !?!?!?!? GOT RES_JSON: llm_load GLOBAL_SELECTED_MODEL_ID: {res_json} ')
-            logging.exception(f'!?!?!?!? GOT RES_JSON: {res_json} ')          
+            print(f' [llm_load] >> GOT RES_JSON: GLOBAL_SELECTED_MODEL_ID: {res_json} ')         
             return f'{res_json}'
         else:
             logging.exception(f'[llm_load] Request Error: {response}')
@@ -1221,7 +1194,7 @@ def llm_create(*params):
         logging.exception(f'[llm_create] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
         logging.exception(f'[llm_create] >> got params: {params} ')
                 
-        req_params = DockerApiComponents(*params)
+        req_params = VllmCreateComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
             "req_method":req_params.method,
@@ -1234,8 +1207,6 @@ def llm_create(*params):
             "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
             "req_max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
-
-
 
 
         if response.status_code == 200:
@@ -1246,48 +1217,6 @@ def llm_create(*params):
             return f'{res_json}'
         else:
             logging.exception(f'[llm_create] Request Error: {response}')
-            return f'Request Error: {response}'
-    
-    except Exception as e:
-        logging.exception(f'Exception occured: {e}', exc_info=True)
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return f'{e}'
-    
-    
-def llm_docker_api(*params):
-    
-    try:
-        global GLOBAL_SELECTED_MODEL_ID
-        print(f' >>> llm_docker_api GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        print(f' >>> llm_docker_api got params: {params} ')
-        logging.exception(f'[llm_docker_api] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        logging.exception(f'[llm_docker_api] >> got params: {params} ')
-                
-        req_params = DockerApiComponents(*params)
-
-        response = requests.post(BACKEND_URL, json={
-            "req_method":req_params.method,
-            "req_image":req_params.image,
-            "req_runtime":req_params.runtime,
-            "req_shm_size":f'{str(req_params.shm_size)}gb',
-            "req_port":req_params.port,
-            "req_model":GLOBAL_SELECTED_MODEL_ID,
-            "req_tensor_parallel_size":req_params.tensor_parallel_size,
-            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
-            "req_max_model_len":req_params.max_model_len
-        }, timeout=REQUEST_TIMEOUT)
-
-
-
-
-        if response.status_code == 200:
-            print(f' [llm_docker_api] >> got response == 200 building json ... {response} ')
-            logging.exception(f'[llm_docker_api] >> got response == 200 building json ...  {response} ')
-            res_json = response.json()        
-            print(f' [llm_docker_api] >> GOT RES_JSON: GLOBAL_SELECTED_MODEL_ID: {res_json} ')         
-            return f'{res_json}'
-        else:
-            logging.exception(f'[llm_docker_api] Request Error: {response}')
             return f'Request Error: {response}'
     
     except Exception as e:
@@ -1338,38 +1267,6 @@ def llm_prompt(*params):
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return f'{e}'
     
-
-
-
-
-    # result = f"Running Settings: \n max_model_len: {req_params.max_model_len}, \n tensor_parallel_size: {req_params.tensor_parallel_size}, \n gpu_memory_utilization: {req_params.gpu_memory_utilization}"
-    
-    # response = requests.post(BACKEND_URL, json={"req_method":"test","req_params":json.dumps(req_params)})
-
-    # print(f'[load_vllm_running] response: {response}')
-    # logging.info(f' [load_vllm_running] response: {response}')
-    # res_json = response.json()
-    # print(f'[load_vllm_running] res_json: {res_json}')
-    # logging.info(f' [load_vllm_running] res_json: {res_json}')
-    # if response.status_code == 200:
-    #     print(f'[load_vllm_running] response.status_code == 200')
-    #     logging.info(f' [load_vllm_running] response.status_code == 200')
-    #     return res_json
-    # else:
-    #     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-    #     logging.info(f' [load_vllm_running] {e}')
-    #     # logging.info(f'[get_docker_container_list] [get_docker_container_list] res_json: {res_json}')
-    #     return f'Error: {response.status_code}'
-    
-
-def predict_with_my_model(*params):
-    req_params = InputValues(*params)
-    result = f"Processed values: {req_params.param1}, {req_params.param2}, {req_params.quantity}, {req_params.animal}, {req_params.countries}, {req_params.place}, {req_params.activity_list}, {req_params.morning}, {req_params.param0}, {req_params.param0}, {req_params.param0}, {req_params.param0}"
-    return result
-
-
-
-
 
 
 
@@ -1548,10 +1445,38 @@ def create_app():
                 with gr.Row(visible=False) as row_select_vllm:
                     vllms=gr.Radio(["vLLM1", "vLLM2", "Create New"], value="vLLM1", show_label=False, info="Select a vLLM or create a new one. Where?")
                     
-                with gr.Accordion(("Create vLLM Parameters"), open=True, visible=False) as vllm_create_settings:
-                    docker_api_components = DockerApiComponents(
+                with gr.Accordion(("Create vLLM Parameters"), open=False, visible=True) as acc_create:
+                    vllm_create_components = VllmCreateComponents(
 
                         method=gr.Textbox(value="create", label="method", info=f"yee the req_method."),
+                        
+                        image=gr.Textbox(value="xoo4foo/zzvllm43:latest", label="image", info=f"Dockerhub vLLM image"),
+                        runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
+                        shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
+                        
+                        port=gr.Slider(1372, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
+                        
+                        prompt_in = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=False),
+                        
+                        top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", visible=False, info=f'Float that controls the cumulative probability of the top tokens to consider'),
+                        
+                        temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", visible=False, info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
+                        
+                        max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", visible=False, info=f'Maximum number of tokens to generate per output sequence'),
+                        
+                        
+                        max_model_len=gr.Slider(1024, 8192, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
+                        tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
+                        gpu_memory_utilization=gr.Slider(0.2, 0.99, value=0.87, label="gpu_memory_utilization", info=f"The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.")
+                    )
+                    
+                    
+
+                                        
+                with gr.Accordion(("Load vLLM Parameters"), open=False, visible=True) as acc_load:
+                    vllm_load_components = VllmLoadComponents(
+
+                        method=gr.Textbox(value="load", label="method", info=f"yee the req_method."),
                         
                         image=gr.Textbox(value="xoo4foo/zzvllm43:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
@@ -2148,18 +2073,6 @@ def create_app():
         )
 
 
-        btn_create.click(
-            lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
-            None, 
-            [row_select_vllm, btn_create_close, vllm_create_settings]
-        )
-        
-        btn_create_close.click(
-            lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
-            None, 
-            [row_select_vllm, btn_create_close, vllm_create_settings]
-        )
-
 
 
         btn_load.click(
@@ -2175,8 +2088,8 @@ def create_app():
             None, 
             row_select_vllm   
         ).then(
-            llm_docker_api,
-            docker_api_components.to_list(),
+            llm_load,
+            vllm_load_components.to_list(),
             [output]
         ).then(
             lambda: gr.update(visible=True, open=True), 
@@ -2190,6 +2103,9 @@ def create_app():
             lambda: gr.update(visible=True), 
             None, 
             row_prompt
+        ).then(
+            refresh_container,
+            [container_state]
         )
 
         btn_create.click(
@@ -2197,12 +2113,12 @@ def create_app():
             None,
             output
         ).then(
-            lambda: gr.update(open=False), 
+            lambda: gr.update(visible=True, open=False), 
             None, 
-            vllm_create_settings    
+            acc_create    
         ).then(
-            llm_docker_api,
-            docker_api_components.to_list(),
+            llm_create,
+            vllm_create_components.to_list(),
             [output]
         ).then(
             lambda: gr.update(visible=True, open=True), 
@@ -2237,7 +2153,7 @@ def create_app():
         vllms.change(
             toggle_vllm_load_create,
             vllms,
-            [vllm_load_settings, vllm_load_actions, vllm_create_settings, vllm_create_actions]
+            [vllm_load_settings, vllm_load_actions, acc_create, vllm_create_actions]
         )
 
 
