@@ -19,7 +19,6 @@ import logging
 
 
 
-
 # print(f'** connecting to redis on port: {os.getenv("REDIS_PORT")} ... ')
 r = redis.Redis(host="redis", port=int(os.getenv("REDIS_PORT", 6379)), db=0)
 
@@ -625,7 +624,20 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+print(f' %%%%% trying to start docker ...')
 client = docker.from_env()
+print(f' %%%%% docker started!')
+print(f' %%%%% trying to docker network ...')
+network_name = "my_app_net"
+try:
+    network = client.networks.get(network_name)
+except docker.errors.NotFound:
+    network = client.networks.create(network_name, driver="bridge")
+print(f' %%%%% docker network started! ...')
+
+
+
 device_request = DeviceRequest(count=-1, capabilities=[["gpu"]])
 
 
@@ -859,6 +871,7 @@ async def docker_rest(request: Request):
                         name=req_container_name,
                         runtime=req_data["req_runtime"],
                         shm_size=req_data["req_shm_size"],
+                        network=network_name,
                         detach=True,
                         environment={
                             'NCCL_DEBUG': 'INFO',
