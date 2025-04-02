@@ -6,3 +6,5 @@ redis
 huggingface_hub
 psutil
 tqdm
+datasets
+torch
