@@ -682,7 +682,7 @@ async def docker_rest(request: Request):
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>> ')
 
             if req_data["vllmcontainer"] == "container_vllm_oai":
-                VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
+                VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/v1/chat/completions'
                 print(f'trying request vllm with da URL: {VLLM_URL}')
                 try:
                     response = requests.post(VLLM_URL, json={
