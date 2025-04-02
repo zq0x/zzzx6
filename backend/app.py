@@ -694,13 +694,23 @@ async def docker_rest(request: Request):
                                         }
                         ]
                     })
+                    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response: {response}')
+                    logging.info(f' [dockerrest]  response: {response}') 
                     if response.status_code == 200:
                         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] status_code: {response.status_code}')
                         logging.info(f' [dockerrest]  status_code: {response.status_code}') 
+                        
+                        
                         response_json = response.json()
-                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response_json: {response.response_json}')
-                        logging.info(f' [dockerrest]  response_json: {response_json}')
-                        return JSONResponse({"result_status": 500, "result_data": f'{response_json}'})              
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response_json: {response_json}')
+                        logging.info(f' [dockerrest]  response_json: {response_json}') 
+                        
+                        
+                        message_content = response_json["choices"][0]["message"]["content"]
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] message_content: {message_content}')
+                        logging.info(f' [dockerrest]  message_content: {message_content}') 
+                        
+                        return JSONResponse({"result_status": 200, "result_data": f'{message_content}'})              
                     else:
                         logging.info(f' [dockerrest] response: {response}')
                         return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
