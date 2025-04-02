@@ -1120,7 +1120,10 @@ def llm_prompt(*params):
 
         req_params = PromptComponents(*params)
 
+
         DEFAULTS_PROMPT = {
+            "vllms2": "container_vllm_xoo",
+            "port": 1370,
             "prompt": "Tell a joke",
             "top_p": 0.95,
             "temperature": 0.8,
@@ -1129,6 +1132,8 @@ def llm_prompt(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"generate",
+            "vllms2":getattr(req_params, "vllms2", DEFAULTS_PROMPT["vllms2"]),
+            "port":getattr(req_params, "port", DEFAULTS_PROMPT["port"]),
             "prompt": getattr(req_params, "prompt", DEFAULTS_PROMPT["prompt"]),
             "top_p":getattr(req_params, "top_p", DEFAULTS_PROMPT["top_p"]),
             "temperature":getattr(req_params, "temperature", DEFAULTS_PROMPT["temperature"]),

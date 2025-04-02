@@ -702,12 +702,23 @@ async def docker_rest(request: Request):
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>>')
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>> ')
             
-            print("trying request vllm")
-            VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
+            # {
+            #     "model": "Qwen/Qwen2.5-1.5B-Instruct",
+            #     "messages": [
+            #         {
+            #             "role": "user",
+            #             "content": "What is the capital of Monaco?"
+            #         }
+            #     ]
+            # }
+                        
+                        
+            VLLM_URL = f'http://{req_data["vllms2"]}:{req_data["port"]}/vllm'
+            print(f'trying request vllm with da URL: {VLLM_URL}')
             try:
                 response = requests.post(VLLM_URL, json={
                     "req_type":"generate",
-                    "prompt":req_data["prompt_in"],
+                    "prompt":req_data["prompt"],
                     "temperature":float(req_data["temperature"]),
                     "top_p":float(req_data["top_p"]),
                     "max_tokens":int(req_data["max_tokens"])
