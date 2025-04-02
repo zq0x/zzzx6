@@ -154,4 +154,5 @@ services:
 
 networks:
   my_app_net:
+    name: my_app_net
     driver: bridge
