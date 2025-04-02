@@ -25,7 +25,7 @@ r = redis.Redis(host="redis", port=int(os.getenv("REDIS_PORT", 6379)), db=0)
 LOG_PATH= './logs'
 LOGFILE_CONTAINER = f'{LOG_PATH}/logfile_container_backend.log'
 os.makedirs(os.path.dirname(LOGFILE_CONTAINER), exist_ok=True)
-logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.info, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.INFO, format='[%(asctime)s - %(name)s - %(levelname)s - %(message)s]')
 logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started logging in {LOGFILE_CONTAINER}')
 # print(f'** connecting to pynvml ... ')
 pynvml.nvmlInit()
