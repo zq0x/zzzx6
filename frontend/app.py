@@ -1969,7 +1969,7 @@ def create_app():
         btn_dl.click(
             parallel_download, 
             [selected_model_size, model_dropdown], 
-            None,
+            output,
             concurrency_limit=15
         )
 
