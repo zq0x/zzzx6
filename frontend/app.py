@@ -1269,7 +1269,7 @@ def create_app():
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
-                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),                        
+                        port=gr.Slider(1370, 1380, step=1, value=1370, label="port", info=f"Choose a port."),                        
                         
                         max_model_len=gr.Slider(1024, 8192, step=1024, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
@@ -1283,8 +1283,8 @@ def create_app():
                     vllm_load_components = VllmLoadComponents(
 
                         method=gr.Textbox(value="load", label="method", info=f"yee the req_method."),
-                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
-                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
+                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_xoo", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                        port=gr.Slider(1370, 1380, step=1, value=1370, label="port", info=f"Choose a port."),
                         image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
                                                                         
                         max_model_len=gr.Slider(1024, 8192, step=1024, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
@@ -1310,8 +1310,8 @@ def create_app():
         with gr.Accordion(("Prompt Parameters"), open=False, visible=True) as acc_prompt:
             with gr.Column(scale=2):
                 llm_prompt_components = PromptComponents(
-                    vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
-                    port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
+                    vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_xoo", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                    port=gr.Slider(1370, 1380, step=1, value=1370, label="port", info=f"Choose a port."),
                     prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
                     top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),
                     temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
