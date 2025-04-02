@@ -1533,7 +1533,7 @@ def create_app():
 
                         method=gr.Textbox(value="create", label="method", info=f"yee the req_method."),
                         
-                        image=gr.Textbox(value="xoo4foo/zzvllm32:latest", label="image", info=f"Dockerhub vLLM image"),
+                        image=gr.Textbox(value="xoo4foo/zzvllm43:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
