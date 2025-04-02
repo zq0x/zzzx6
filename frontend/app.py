@@ -1253,6 +1253,48 @@ def llm_create(*params):
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return f'{e}'
     
+    
+def llm_docker_api(*params):
+    
+    try:
+        global GLOBAL_SELECTED_MODEL_ID
+        print(f' >>> llm_docker_api GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
+        print(f' >>> llm_docker_api got params: {params} ')
+        logging.exception(f'[llm_docker_api] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
+        logging.exception(f'[llm_docker_api] >> got params: {params} ')
+                
+        req_params = DockerApiComponents(*params)
+
+        response = requests.post(BACKEND_URL, json={
+            "req_method":req_params.method,
+            "req_image":req_params.image,
+            "req_runtime":req_params.runtime,
+            "req_shm_size":f'{str(req_params.shm_size)}gb',
+            "req_port":req_params.port,
+            "req_model":GLOBAL_SELECTED_MODEL_ID,
+            "req_tensor_parallel_size":req_params.tensor_parallel_size,
+            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
+            "req_max_model_len":req_params.max_model_len
+        }, timeout=REQUEST_TIMEOUT)
+
+
+
+
+        if response.status_code == 200:
+            print(f' [llm_docker_api] >> got response == 200 building json ... {response} ')
+            logging.exception(f'[llm_docker_api] >> got response == 200 building json ...  {response} ')
+            res_json = response.json()        
+            print(f' [llm_docker_api] >> GOT RES_JSON: GLOBAL_SELECTED_MODEL_ID: {res_json} ')         
+            return f'{res_json}'
+        else:
+            logging.exception(f'[llm_docker_api] Request Error: {response}')
+            return f'Request Error: {response}'
+    
+    except Exception as e:
+        logging.exception(f'Exception occured: {e}', exc_info=True)
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        return f'{e}'
+    
         
 def llm_prompt(*params):
     
@@ -1657,167 +1699,12 @@ def create_app():
 
 
 
-        input_search.submit(
-            search_models, 
-            input_search, 
-            [model_dropdown]
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            model_dropdown
-        )
-        
-        btn_search.click(
-            search_models, 
-            input_search, 
-            [model_dropdown]
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            model_dropdown
-        )
 
 
-
-
-        model_dropdown.change(
-            get_info, 
-            model_dropdown, 
-            [selected_model_search_data,selected_model_id,selected_model_architectures,selected_model_pipeline_tag,selected_model_transformers,selected_model_private,selected_model_downloads,selected_model_container_name]
-        ).then(
-            get_additional_info, 
-            model_dropdown, 
-            [selected_model_hf_data, selected_model_config_data, selected_model_architectures,selected_model_id, selected_model_size, selected_model_gated, selected_model_model_type, selected_model_quantization, selected_model_torch_dtype, selected_model_hidden_size]
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_model_select
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_model_info
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_vllm
-        ).then(
-            gr_load_check, 
-            [selected_model_id, selected_model_architectures, selected_model_pipeline_tag, selected_model_transformers, selected_model_size, selected_model_private, selected_model_gated, selected_model_model_type, selected_model_quantization],
-            [output,row_download,btn_load]
-        )
-
-
-        vllm_running_engine_arguments_show.click(
-            lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
-            None, 
-            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
-        )
-        
-        vllm_running_engine_arguments_close.click(
-            lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
-            None, 
-            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
-        )
-
-
-        btn_create.click(
-            lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
-            None, 
-            [row_select_vllm, btn_create_close, vllm_create_settings]
-        )
-        
-        btn_create_close.click(
-            lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
-            None, 
-            [row_select_vllm, btn_create_close, vllm_create_settings]
-        )
-
-
-
-        btn_load.click(
-            lambda: gr.update(label="Deploying"),
-            None,
-            output
-        ).then(
-            lambda: gr.update(visible=True, open=True), 
-            None, 
-            vllm_load_settings    
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_select_vllm   
-        ).then(
-            llm_load,
-            vllm_load_components.to_list(),
-            [output]
-        ).then(
-            lambda: gr.update(visible=True, open=True), 
-            None, 
-            vllm_prompt_settings
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            btn_load
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_prompt
-        )
-
-        btn_create.click(
-            lambda: gr.update(label="Deploying"),
-            None,
-            output
-        ).then(
-            lambda: gr.update(open=True), 
-            None, 
-            vllm_create_settings    
-        ).then(
-            llm_create,
-            docker_api_components.to_list(),
-            [output]
-        ).then(
-            lambda: gr.update(visible=True, open=True), 
-            None, 
-            vllm_prompt_settings
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            btn_create
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            btn_create_close
-        ).then(
-            lambda: gr.update(visible=True), 
-            None, 
-            row_prompt
-        )
-
-
-        
-        prompt_btn.click(
-            llm_prompt,
-            llm_prompt_components.to_list(),
-            [output_prompt]
-        )
 
 
 
         
-        # btn_vllm_running2.click(
-        #     load_vllm_running2,
-        #     vllm_load_components.to_list(),
-        #     [output]
-        # )
-
-
-
-        vllms.change(
-            toggle_vllm_load_create,
-            vllms,
-            [vllm_load_settings, vllm_load_actions, vllm_create_settings, vllm_create_actions]
-        )
         
         
         
@@ -2120,6 +2007,26 @@ def create_app():
 
 
 
+        input_search.submit(
+            search_models, 
+            input_search, 
+            [model_dropdown]
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            model_dropdown
+        )
+        
+        btn_search.click(
+            search_models, 
+            input_search, 
+            [model_dropdown]
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            model_dropdown
+        )
+
 
         btn_dl.click(
             parallel_download, 
@@ -2174,71 +2081,164 @@ def create_app():
         )
 
 
-        # btn_dl.click(
-        #     lambda: gr.update(
-        #         label="Downloading ...",
-        #         visible=True), 
-        #     None, 
-        #     output,
-        #     concurrency_limit=15
-        # ).then(
-        #     lambda: gr.Timer(active=True), 
-        #     None, 
-        #     timer_dl,
-        #     concurrency_limit=15
-        # ).then(
-        #     download_info, 
-        #     selected_model_size, 
-        #     output,
-        #     concurrency_limit=15
-        # ).then(
-        #     download_from_hf_hub, 
-        #     model_dropdown, 
-        #     concurrency_limit=15
-        # ).then(
-        #     lambda: gr.Timer(active=False), 
-        #     None, 
-        #     timer_dl,
-        #     concurrency_limit=15
-        # ).then(
-        #     lambda: gr.update(label="Download finished!"), 
-        #     None, 
-        #     output,
-        #     concurrency_limit=15
-        # ).then(
-        #     lambda: gr.update(visible=True), 
-        #     None, 
-        #     btn_interface,
-        #     concurrency_limit=15
-        # ).then(
-        #     lambda: gr.update(visible=True), 
-        #     None, 
-        #     btn_interface,
-        #     concurrency_limit=15
-        # )
 
-        # btn_deploy = gr.Button("Deploy", visible=True)
-        # btn_deploy.click(
-        #     lambda: gr.update(label="Building vLLM container",visible=True), 
-        #     None, 
-        #     output
-        # ).then(
-        #     docker_api_create,
-        #     [model_dropdown,selected_model_pipeline_tag,port_model,port_vllm],
-        #     output
-        # ).then(
-        #     refresh_container,
-        #     None,
-        #     [container_state]
-        # ).then(
-        #     lambda: gr.Timer(active=True), 
-        #     None, 
-        #     timer_dl
-        # ).then(
-        #     lambda: gr.update(visible=True), 
-        #     None, 
-        #     btn_interface
-        # )
+
+
+
+        input_search.submit(
+            search_models, 
+            input_search, 
+            [model_dropdown]
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            model_dropdown
+        )
+        
+        btn_search.click(
+            search_models, 
+            input_search, 
+            [model_dropdown]
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            model_dropdown
+        )
+
+
+
+
+        model_dropdown.change(
+            get_info, 
+            model_dropdown, 
+            [selected_model_search_data,selected_model_id,selected_model_architectures,selected_model_pipeline_tag,selected_model_transformers,selected_model_private,selected_model_downloads,selected_model_container_name]
+        ).then(
+            get_additional_info, 
+            model_dropdown, 
+            [selected_model_hf_data, selected_model_config_data, selected_model_architectures,selected_model_id, selected_model_size, selected_model_gated, selected_model_model_type, selected_model_quantization, selected_model_torch_dtype, selected_model_hidden_size]
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_model_select
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_model_info
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_vllm
+        ).then(
+            gr_load_check, 
+            [selected_model_id, selected_model_architectures, selected_model_pipeline_tag, selected_model_transformers, selected_model_size, selected_model_private, selected_model_gated, selected_model_model_type, selected_model_quantization],
+            [output,row_download,btn_load]
+        )
+
+
+        vllm_running_engine_arguments_show.click(
+            lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
+            None, 
+            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
+        )
+        
+        vllm_running_engine_arguments_close.click(
+            lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
+            None, 
+            [vllm_running_engine_arguments_show, vllm_running_engine_arguments_close, vllm_load_settings]
+        )
+
+
+        btn_create.click(
+            lambda: [gr.update(visible=False), gr.update(visible=True), gr.update(visible=True)], 
+            None, 
+            [row_select_vllm, btn_create_close, vllm_create_settings]
+        )
+        
+        btn_create_close.click(
+            lambda: [gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)], 
+            None, 
+            [row_select_vllm, btn_create_close, vllm_create_settings]
+        )
+
+
+
+        btn_load.click(
+            lambda: gr.update(label="Deploying"),
+            None,
+            output
+        ).then(
+            lambda: gr.update(visible=True, open=False), # hier
+            None, 
+            vllm_load_settings    
+        ).then(
+            lambda: gr.update(visible=True), # hier
+            None, 
+            row_select_vllm   
+        ).then(
+            llm_docker_api,
+            docker_api_components.to_list(),
+            [output]
+        ).then(
+            lambda: gr.update(visible=True, open=True), 
+            None, 
+            vllm_prompt_settings
+        ).then(
+            lambda: gr.update(visible=True), # hier
+            None, 
+            btn_load
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_prompt
+        )
+
+        btn_create.click(
+            lambda: gr.update(label="Deploying"),
+            None,
+            output
+        ).then(
+            lambda: gr.update(open=False), 
+            None, 
+            vllm_create_settings    
+        ).then(
+            llm_docker_api,
+            docker_api_components.to_list(),
+            [output]
+        ).then(
+            lambda: gr.update(visible=True, open=True), 
+            None, 
+            vllm_prompt_settings
+        ).then(
+            lambda: gr.update(visible=True), 
+            None, 
+            row_prompt
+        ).then(
+            lambda: gr.update(visible=True), # hier
+            None, 
+            btn_create
+        ).then(
+            lambda: gr.update(visible=True), # hier
+            None, 
+            btn_create_close
+        ).then(
+            refresh_container,
+            [container_state]
+        )
+
+
+        
+        prompt_btn.click(
+            llm_prompt,
+            llm_prompt_components.to_list(),
+            [output_prompt]
+        )
+
+
+        vllms.change(
+            toggle_vllm_load_create,
+            vllms,
+            [vllm_load_settings, vllm_load_actions, vllm_create_settings, vllm_create_actions]
+        )
 
 
 
