@@ -69,18 +69,18 @@ services:
               count: all
               capabilities: [gpu]
     ports:
-      - "1371:1371"
+      - "1370:1370"
     container_name: container_vllm_xoo
     volumes:
       - /models:/models
     shm_size: 8gb
     environment:
       - NCCL_DEBUG=INFO
-      - VLLM_PORT=1371
+      - VLLM_PORT=1370
     command: [
       "python", "app.py",
       "--model", "Qwen/Qwen2.5-1.5B-Instruct",
-      "--port", "1371",
+      "--port", "1370",
       "--tensor-parallel-size", "1",
       "--gpu-memory-utilization", "0.85",
       "--max-model-len", "4096"
@@ -99,7 +99,7 @@ services:
               count: all
               capabilities: [gpu]
     ports:
-      - "1370:1370"
+      - "1371:1371"
     container_name: container_vllm_oai
     volumes:
       - /root/.cache/huggingface/hub:/root/.cache/huggingface/hub
@@ -109,7 +109,7 @@ services:
       - NCCL_DEBUG=INFO
     command: [
       "--model", "Qwen/Qwen2.5-1.5B-Instruct",
-      "--port", "1370",
+      "--port", "1371",
       "--tensor-parallel-size", "1",
       "--gpu-memory-utilization", "0.95",
       "--max-model-len", "4096",

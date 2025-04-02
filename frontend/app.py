@@ -18,34 +18,12 @@ import huggingface_hub
 from huggingface_hub import snapshot_download
 import logging
 import psutil
-from faster_whisper import WhisperModel
 
 
-# Initialize the model (will download on first run)
-model_size = "small"  # tiny, base, small, medium, large-v1, large-v2
-model = None
-
-def load_audio_model():
-    global model
-    if model is None:
-        model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
 def transcribe_audio(audio_file):
-    # Load model if not loaded
-    load_audio_model()
-    
-    # Transcribe the audio file
-    start_time = time.time()
-    segments, info = model.transcribe(audio_file)
-    
-    # Combine all segments into one text
-    full_text = "\n".join([segment.text for segment in segments])
-    
-    # Calculate processing time
-    processing_time = time.time() - start_time
-    
-    return f"Detected language: {info.language}\n\n{full_text}\n\nProcessing time: {processing_time:.2f}s"
-
+    req_file = audio_file
+    return f'req_file: {req_file}'
 
 
 
@@ -1110,16 +1088,16 @@ def toggle_vllm_load_create(vllm_list):
     
     if "Create New" in vllm_list:
         return (
-            gr.Textbox(visible=False),
+            gr.Accordion(open=False,visible=False),
             gr.Button(visible=False),
-            gr.Textbox(visible=True),
+            gr.Accordion(open=True,visible=True),
             gr.Button(visible=True)
         )
 
     return (
-        gr.Textbox(visible=True),
+        gr.Accordion(open=True,visible=True),
         gr.Button(visible=True),    
-        gr.Textbox(visible=False),
+        gr.Accordion(open=False,visible=False),
         gr.Button(visible=False)
     )
 
@@ -1761,11 +1739,11 @@ def create_app():
             None,
             output
         ).then(
-            lambda: gr.update(visible=False, open=False), 
+            lambda: gr.update(visible=True, open=True), 
             None, 
             vllm_load_settings    
         ).then(
-            lambda: gr.update(visible=False), 
+            lambda: gr.update(visible=True), 
             None, 
             row_select_vllm   
         ).then(
@@ -1777,7 +1755,7 @@ def create_app():
             None, 
             vllm_prompt_settings
         ).then(
-            lambda: gr.update(visible=False), 
+            lambda: gr.update(visible=True), 
             None, 
             btn_load
         ).then(
@@ -1791,7 +1769,7 @@ def create_app():
             None,
             output
         ).then(
-            lambda: gr.update(open=False), 
+            lambda: gr.update(open=True), 
             None, 
             vllm_create_settings    
         ).then(
@@ -1803,11 +1781,11 @@ def create_app():
             None, 
             vllm_prompt_settings
         ).then(
-            lambda: gr.update(visible=False), 
+            lambda: gr.update(visible=True), 
             None, 
             btn_create
         ).then(
-            lambda: gr.update(visible=False), 
+            lambda: gr.update(visible=True), 
             None, 
             btn_create_close
         ).then(
