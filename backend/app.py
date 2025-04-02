@@ -61,8 +61,90 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
 
 
 
+# created (running time)
+# port 
+# gpu name 
+# gpu uuid
+# public or private 
+# user 
+# model 
+# vllm image 
+# prompts amount
+# tokens
+
+# computed
 
 
+
+
+
+async def save_redis(**kwargs):
+    try:
+        if not kwargs:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] [error] No data')
+            return f'no data'
+        else:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] kwargs: {kwargs}')
+        if not kwargs["db_name"]:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] [error] No db_name')
+            return f'no db_name'
+                
+        if not 'vllm_id' in kwargs:            
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] No vllm_id provided. Creating new ...')
+            vllm_id = f'vllm_{str(int(datetime.now().timestamp()))}'
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] ... vllm_id: {vllm_id}')        
+        
+        res_db_list = r.lrange(kwargs["db_name"], 0, -1)
+        if len(res_db_list) > 0:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] found {len(res_db_list)} entries!')
+            req_vllm_id_list = [entry for entry in res_db_list if json.loads(entry)["vllm_id"] == kwargs["vllm_id"]]
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] found {len(req_vllm_id_list)} for {kwargs["vllm_id"]}')
+            
+            if len(req_vllm_id_list) > 0:
+                print(f'Found {kwargs["vllm_id"]}! Updating')                
+                for entry in res_db_list:
+                    parsed_entry = json.loads(entry)  # Convert JSON string to dictionary
+                    print(f'*** parsed_entry {parsed_entry["vllm_id"]}!')
+                    if parsed_entry["vllm_id"] == kwargs["vllm_id"]:
+                        print(f'found vllm_id {kwargs["vllm_id"]}!')
+                        r.lrem(kwargs["db_name"], 0, entry)
+                        print("entry deleted!")
+                        parsed_entry['ts'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print("trying push ...")
+                        r.rpush(kwargs["db_name"], json.dumps(parsed_entry))
+                        print("pushed!")
+            else:                
+                print(f'didnt find {kwargs["vllm_id"]} yet! Creating')
+                redis_data = {
+                    "db_name": kwargs["db_name"],
+                    "vllm_id": kwargs["vllm_id"],
+                    "model": kwargs["model"], 
+                    "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }    
+                r.rpush(kwargs["db_name"], json.dumps(redis_data))
+                print("created!")
+
+        else:
+            print("no entry found yet .. creating")
+            redis_data = {
+                "db_name": kwargs["db_name"],
+                "vllm_id": vllm_id,
+                "model": kwargs["model"], 
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            r.rpush(kwargs["db_name"], json.dumps(redis_data))
+            print("created!")
+
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] [error]: {e}')
+
+
+
+print(f' @@@ testing redis ...!')
+redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
+print(f' @@@ trying to save redis ...')
+save_redis(**redis_data)
+print(f' @@@ saved redis!')
 
 
 
@@ -539,7 +621,7 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(redis_timer_gpu())
     asyncio.create_task(redis_timer_disk())
     asyncio.create_task(redis_timer_network())
-    asyncio.create_task(redis_timer_vllm())
+    # asyncio.create_task(redis_timer_vllm())
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -604,7 +686,7 @@ async def docker_rest(request: Request):
                     response_json = response.json()
                     logging.info(f' [dockerrest]  response_json: {response_json}') 
                     response_json["result_data"] = response_json["result_data"]
-                    return response_json["result_data"]                
+                    return response_json["result_data"]
                 else:
                     logging.info(f' [dockerrest] response: {response}')
                     return JSONResponse({"result_status": 500, "result_data": f'ERRRR'})
@@ -676,6 +758,35 @@ async def docker_rest(request: Request):
             req_container.start()
             return JSONResponse({"result": 200})
 
+        if req_data["req_method"] == "load":
+            print(f' * ! * ! * trying to load ....  0 ')
+            VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
+            print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
+            try:
+                response = requests.post(VLLM_URL, json={
+                    "req_type":"load",
+                    "max_model_len":int(req_data["req_max_model_len"]),
+                    "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
+                    "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
+                    "model":str(req_data["model_id"])
+                })
+                print(f' * ! * ! * trying to load ....  3 response {response}')
+                if response.status_code == 200:
+                    print(f' * ! * ! * trying to load ....  4 status_code: {response.status_code}')
+                    
+                    response_json = response.json()
+                    print(f' * ! * ! * trying to load ....  5 response_json: {response_json}')
+                    print(f' * ! * ! * trying to load ....  6 response_json["result_data"]: {response_json["result_data"]}')
+                    return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
+                else:
+                    print(f' * ! * ! * trying to load .... 7 ERRRRR')
+                    return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR'})
+            
+            except Exception as e:
+                    print(f' * ! * ! * trying to load .... 8 ERRRRR')
+                    return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
+
+
         if req_data["req_method"] == "create":
             try:
                 req_container_name = str(req_data["req_model"]).replace('/', '_')
@@ -693,43 +804,6 @@ async def docker_rest(request: Request):
                     print(f' !!!!! create found "xoo4foo/" !')
                 
                 
-                # res_db_gpu = await r.get('db_gpu')
-                
-                # all_used_ports = []
-                # all_used_models = []
-                
-
-                
-                # if res_db_gpu is not None:
-                #     db_gpu = json.loads(res_db_gpu)                    
-                #     all_used_ports += [req_data["req_port"],req_data["req_port"]]
-                #     all_used_models += [req_data["req_port"]]
-                #     add_data = {
-                #         "gpu": 0, 
-                #         "gpu_info": "0",
-                #         "running_model": str(req_container_name),
-                #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                #         "port_vllm": req_data["req_port"],
-                #         "port_model": req_data["req_port"],
-                #         "used_ports": str(all_used_ports),
-                #         "used_models": str(all_used_models)
-                #     }
-                    
-                #     db_gpu += [add_data]
-                #     await r.set('db_gpu', json.dumps(db_gpu))                
-                
-                # else:
-                #     add_data = {
-                #         "gpu": 0, 
-                #         "gpu_info": "0",
-                #         "running_model": str(req_container_name),
-                #         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                #         "port_vllm": str(req_data["req_port"]),
-                #         "port_model": str(req_data["req_port"]),
-                #         "used_ports": f'{str(req_data["req_port"])},{str(req_data["req_port"])}',
-                #         "used_models": str(str(req_data["req_model"]))
-                #     }
-                #     await r.set('db_gpu', json.dumps(add_data))
 
                 print(f' ************ calling stop_vllm_container()')
                 res_stop_vllm_container = await stop_vllm_container()
@@ -765,11 +839,11 @@ async def docker_rest(request: Request):
                     container_id = res_container.id
                     return JSONResponse({"result_status": 200, "result_data": str(container_id)})
                 
-                elif "xoo4foo/" in req_data["req_image"]:
+                if "xoo4foo/" in req_data["req_image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
                     print(f' !!!!! create found req_container_name: {req_container_name} !')
 
-                    client.containers.run(
+                    res_container = client.containers.run(
                         image=req_data["req_image"],
                         name=req_container_name,
                         runtime=req_data["req_runtime"],
@@ -797,70 +871,10 @@ async def docker_rest(request: Request):
                         ]
                     )
                     
-                    print(f' !!!!! check if container running 0 !!')
-                    try:
-                        print(f' !!!!! check if container running 1 !!')
-                        res_container_list = client.containers.list(all=True)
-                        print(f' !!!!! check if container running 2 !!')
-                        vllm_container_created_running = [c for c in res_container_list if c.name == req_container_name and c.status == "running"]
-                        print(f' !!!!! check if container running 3 !! vllm_container_created_running: {len(vllm_container_created_running)}')
-                        vllm_containers_wait_i = 0
-                        vllm_containers_wait_threshold = 5
-                        while len(vllm_container_created_running) < 1 or vllm_containers_wait_i > vllm_containers_wait_threshold:
-                            print(f'!!!!! check if container running 4 .... container not found yet ..')
-                            res_container_list = client.containers.list(all=True)
-                            vllm_container_created_running = [c for c in res_container_list if c.name == req_container_name and c.status == "running"]
-                            vllm_containers_wait_i = vllm_containers_wait_i + 1
-                            time.sleep(5)
-                        print(f'!!!!! check if container running 5 !! FOUND NEW CONTAINER !! SUCCESS')
-                        
-                        
-                        
-                        
-                        print(f' * ! * ! * sleeping for 60 sec ...')
-                        for i in range(0,60):
-                            print(f' * ! * ! * zzz ZZZ zzz {i} ... * ! * ! *')
-                            time.sleep(1)
-                        
-                        print(f' * ! * ! * trying to load ....  0 ')
-                        VLLM_URL = f'http://{req_container_name}:{req_data["req_port"]}/vllm'
-                        print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
-                        try:
-                            response = requests.post(VLLM_URL, json={
-                                "req_type":"load",
-                                "max_model_len":int(req_data["req_max_model_len"]),
-                                "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
-                                "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
-                                "model":str(req_data["model_id"])
-                            })
-                            print(f' * ! * ! * trying to load ....  3 response {response}')
-                            if response.status_code == 200:
-                                print(f' * ! * ! * trying to load ....  4 status_code: {response.status_code}')
-                                
-                                response_json = response.json()
-                                print(f' * ! * ! * trying to load ....  5 response_json: {response_json}')
-                                print(f' * ! * ! * trying to load ....  6 response_json["result_data"]: {response_json["result_data"]}')
-                                return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
-                            else:
-                                print(f' * ! * ! * trying to load .... 7 ERRRRR')
-                                return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR'})
-                        
-                        except Exception as e:
-                                print(f' * ! * ! * trying to load .... 8 ERRRRR')
-                                return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
 
-                    except Exception as e:
-                        print(f'!!!!! check if container running 9 !! DID NUU FIND :(( error e: {e}') 
-                        return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 9'})
-                    
-
-                    
-                else:
-                    print(f'ERROR no req_image found: req_data["req_image"]: {req_data["req_image"]}')
-                    return JSONResponse({"result_status": 500, "result_data": f'"no req_data["req_image"] {req_data["req_image"]}'})
-
-                
-
+                    container_id = res_container.id
+                    return JSONResponse({"result_status": 200, "result_data": str(container_id)})
+                        
             except Exception as e:
                 print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
                 return JSONResponse({"result_status": 500, "result_data": f'{e}'})

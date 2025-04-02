@@ -722,16 +722,43 @@ def disk_to_pd():
 
 disk_to_pd()
 
+def get_redis(req_db_name, req_container_value):
+    res_db_list = r.lrange(req_db_name, 0, -1)
+    res_db_list_json = [json.loads(entry) for entry in res_db_list]
+    if res_db_list:
+        # res_db_list = [json.loads(entry) for entry in res_db_list]
+        # print(f'res_db_list: {res_db_list}')
+        # res_db_filtered = [entry for entry in res_db_list_json if entry["container"] == req_container_value]
+        res_db_filtered_kappa = [entry for entry in res_db_list_json]
+        # print(f'res_db_filtered: {res_db_filtered}')
+        return res_db_filtered_kappa
+    else:
+        print(f'No data found for {req_db_name}')
+        return []
+
+# all_b = get_redis("db_vllm","b")
+# print(f'all_b')
+# print(f'{all_b}')
+
+# aaaaa
+redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
 def vllm_to_pd():
     rows = []
     try:
-        vllm_list = get_vllm_data()
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+        # vllm_list = get_vllm_data()
+        vllm_list = get_redis("db_vllm","b")
+        
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
         for entry in vllm_list:
-            vllm_info = ast.literal_eval(entry['vllm_info'])
+            # vllm_info = ast.literal_eval(entry['vllm_info'])
             rows.append({                
-                "vllm_i": entry.get("vllm_i", "0"),
-                "timestamp": entry.get("timestamp", "0"),
-                "name": vllm_info.get("name", "niiiixbla")              
+                "db_name": entry.get("db_name", "0"),
+                "vllm_id": entry.get("vllm_id", "0"),
+                "model": entry.get("model", "0"),
+                "ts": entry.get("ts", "0")            
             })
         df = pd.DataFrame(rows)
         return df
@@ -1450,7 +1477,7 @@ def create_app():
 
                         method=gr.Textbox(value="create", label="method", info=f"yee the req_method."),
                         
-                        image=gr.Textbox(value="xoo4foo/zzvllm43:latest", label="image", info=f"Dockerhub vLLM image"),
+                        image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
@@ -1478,7 +1505,7 @@ def create_app():
 
                         method=gr.Textbox(value="load", label="method", info=f"yee the req_method."),
                         
-                        image=gr.Textbox(value="xoo4foo/zzvllm43:latest", label="image", info=f"Dockerhub vLLM image"),
+                        image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
                         
