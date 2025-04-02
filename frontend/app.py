@@ -864,9 +864,6 @@ class VllmLoadComponents:
     vllmcontainer: gr.Radio
     port: gr.Slider
     image: gr.Textbox
-    runtime: gr.Textbox
-    shm_size: gr.Slider
-    port: gr.Slider
     max_model_len: gr.Slider
     tensor_parallel_size: gr.Number
     gpu_memory_utilization: gr.Slider
@@ -880,9 +877,6 @@ class VllmLoadValues:
     vllmcontainer: str
     port: int
     image: str
-    runtime: str
-    shm_size: int
-    port: int
     max_model_len: int
     tensor_parallel_size: int
     gpu_memory_utilization: int
@@ -1292,10 +1286,6 @@ def create_app():
                         vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
                         port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                         image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
-                        runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
-                        shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
-                        
-                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                                                                         
                         max_model_len=gr.Slider(1024, 8192, step=1024, value=1024, label="max_model_len", info=f"Model context length. If unspecified, will be automatically derived from the model config."),
                         tensor_parallel_size=gr.Number(1, 8, value=1, label="tensor_parallel_size", info=f"Number of tensor parallel replicas."),
