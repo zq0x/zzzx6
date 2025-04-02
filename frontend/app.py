@@ -861,6 +861,8 @@ class VllmCreateValues:
 @dataclass
 class VllmLoadComponents:
     method: gr.Textbox
+    vllmcontainer: gr.Radio
+    port: gr.Slider
     image: gr.Textbox
     runtime: gr.Textbox
     shm_size: gr.Slider
@@ -875,6 +877,8 @@ class VllmLoadComponents:
 @dataclass
 class VllmLoadValues:
     method: str
+    vllmcontainer: str
+    port: int
     image: str
     runtime: str
     shm_size: int
@@ -887,7 +891,7 @@ class VllmLoadValues:
 
 @dataclass
 class PromptComponents:
-    vllms2: gr.Radio
+    vllmcontainer: gr.Radio
     port: gr.Slider
     prompt: gr.Textbox
     top_p: gr.Slider
@@ -899,7 +903,7 @@ class PromptComponents:
 
 @dataclass
 class PromptValues:
-    vllms2: str
+    vllmcontainer: str
     port: int
     prompt: str
     top_p: int
@@ -954,80 +958,7 @@ def toggle_vllm_load_create(vllm_list):
         gr.Button(visible=False)
     )
 
-def load_vllm_running3(*params):
-    
-    try:
-        global GLOBAL_SELECTED_MODEL_ID
-        print(f' >>> load_vllm_running GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        print(f' >>> load_vllm_running got params: {params} ')
-        logging.info(f'[load_vllm_running] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        logging.info(f'[load_vllm_running] >> got params: {params} ')
-                
-        req_params = VllmLoadValues(*params)
-
-
-        response = requests.post(BACKEND_URL, json={
-            "req_method":"cleartorch",
-            "model_id":GLOBAL_SELECTED_MODEL_ID,
-            "max_model_len":req_params.max_model_len,
-            "tensor_parallel_size":req_params.tensor_parallel_size,
-            "gpu_memory_utilization":req_params.gpu_memory_utilization
-        }, timeout=REQUEST_TIMEOUT)
-
-        if response.status_code == 200:
-            print(f' !?!?!?!? got response == 200 building json ... {response} ')
-            logging.info(f'!?!?!?!? got response == 200 building json ...  {response} ')
-            res_json = response.json()        
-            print(f' !?!?!?!? GOT RES_JSON: load_vllm_running GLOBAL_SELECTED_MODEL_ID: {res_json} ')
-            logging.info(f'!?!?!?!? GOT RES_JSON: {res_json} ')          
-            return f'{res_json}'
-        else:
-            logging.info(f'[load_vllm_running] Request Error: {response}')
-            return f'Request Error: {response}'
-    
-    except Exception as e:
-        logging.exception(f'Exception occured: {e}', exc_info=True)
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return f'{e}'
-    
-    
-def load_vllm_running2(*params):
-    
-    try:
-        global GLOBAL_SELECTED_MODEL_ID
-        print(f' >>> load_vllm_running GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        print(f' >>> load_vllm_running got params: {params} ')
-        logging.exception(f'[load_vllm_running] >> GLOBAL_SELECTED_MODEL_ID: {GLOBAL_SELECTED_MODEL_ID} ')
-        logging.exception(f'[load_vllm_running] >> got params: {params} ')
-                
-        req_params = VllmLoadValues(*params)
-
-
-        response = requests.post(BACKEND_URL, json={
-            "req_method":"clearsmi",
-            "model_id":GLOBAL_SELECTED_MODEL_ID,
-            "max_model_len":req_params.max_model_len,
-            "tensor_parallel_size":req_params.tensor_parallel_size,
-            "gpu_memory_utilization":req_params.gpu_memory_utilization
-        }, timeout=REQUEST_TIMEOUT)
-
-        if response.status_code == 200:
-            print(f' !?!?!?!? got response == 200 building json ... {response} ')
-            logging.exception(f'!?!?!?!? got response == 200 building json ...  {response} ')
-            res_json = response.json()        
-            print(f' !?!?!?!? GOT RES_JSON: load_vllm_running GLOBAL_SELECTED_MODEL_ID: {res_json} ')
-            logging.exception(f'!?!?!?!? GOT RES_JSON: {res_json} ')          
-            return f'{res_json}'
-        else:
-            logging.exception(f'[load_vllm_running] Request Error: {response}')
-            return f'Request Error: {response}'
-    
-    except Exception as e:
-        logging.exception(f'Exception occured: {e}', exc_info=True)
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return f'{e}'
-    
-    
+   
     
 def llm_load(*params):
     
@@ -1120,9 +1051,9 @@ def llm_prompt(*params):
 
         req_params = PromptComponents(*params)
 
-
         DEFAULTS_PROMPT = {
-            "vllms2": "container_vllm_xoo",
+            "model": "Qwen/Qwen2.5-1.5B-Instruct",
+            "vllmcontainer": "container_vllm_xoo",
             "port": 1370,
             "prompt": "Tell a joke",
             "top_p": 0.95,
@@ -1132,7 +1063,8 @@ def llm_prompt(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":"generate",
-            "vllms2":getattr(req_params, "vllms2", DEFAULTS_PROMPT["vllms2"]),
+            "model":GLOBAL_SELECTED_MODEL_ID,
+            "vllmcontainer":getattr(req_params, "vllmcontainer", DEFAULTS_PROMPT["vllmcontainer"]),
             "port":getattr(req_params, "port", DEFAULTS_PROMPT["port"]),
             "prompt": getattr(req_params, "prompt", DEFAULTS_PROMPT["prompt"]),
             "top_p":getattr(req_params, "top_p", DEFAULTS_PROMPT["top_p"]),
@@ -1357,7 +1289,8 @@ def create_app():
                     vllm_load_components = VllmLoadComponents(
 
                         method=gr.Textbox(value="load", label="method", info=f"yee the req_method."),
-                        
+                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                        port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                         image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
                         runtime=gr.Textbox(value="nvidia", label="runtime", info=f"Container runtime"),
                         shm_size=gr.Slider(1, 320, step=1, value=8, label="shm_size", info=f'Maximal GPU Memory in GB'),
@@ -1387,7 +1320,7 @@ def create_app():
         with gr.Accordion(("Prompt Parameters"), open=False, visible=True) as acc_prompt:
             with gr.Column(scale=2):
                 llm_prompt_components = PromptComponents(
-                    vllms2=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                    vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
                     port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                     prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
                     top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),

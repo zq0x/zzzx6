@@ -713,42 +713,62 @@ async def docker_rest(request: Request):
             print(req_data)
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>>')
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>> ')
+
+            if req_data["vllmcontainer"] == "container_vllm_oai":
+                VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
+                print(f'trying request vllm with da URL: {VLLM_URL}')
+                try:
+                    response = requests.post(VLLM_URL, json={
+                        "model":req_data["model"],
+                        "messages": [
+                                        {
+                                            "role": "user",
+                                            "content": f'{req_data["prompt"]}'
+                                        }
+                        ]
+                    })
+                    if response.status_code == 200:
+                        logging.info(f' [dockerrest]  status_code: {response.status_code}') 
+                        response_json = response.json()
+                        logging.info(f' [dockerrest]  response_json: {response_json}') 
+                        response_json["result_data"] = response_json["result_data"]
+                        return response_json["result_data"]                
+                    else:
+                        logging.info(f' [dockerrest] response: {response}')
+                        return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
+                
+                except Exception as e:
+                    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+                    return f'err {str(e)}'
+                
+                
+            if req_data["vllmcontainer"] == "container_vllm_xoo": 
+                VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
+                print(f'trying request vllm with da URL: {VLLM_URL}')
+                try:
+                    response = requests.post(VLLM_URL, json={
+                        "req_type":"generate",
+                        "prompt":req_data["prompt"],
+                        "temperature":float(req_data["temperature"]),
+                        "top_p":float(req_data["top_p"]),
+                        "max_tokens":int(req_data["max_tokens"])
+                    })
+                    if response.status_code == 200:
+                        logging.info(f' [dockerrest]  status_code: {response.status_code}') 
+                        response_json = response.json()
+                        logging.info(f' [dockerrest]  response_json: {response_json}') 
+                        response_json["result_data"] = response_json["result_data"]
+                        return response_json["result_data"]                
+                    else:
+                        logging.info(f' [dockerrest] response: {response}')
+                        return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
+                
+                except Exception as e:
+                    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+                    return f'err {str(e)}'
             
-            # {
-            #     "model": "Qwen/Qwen2.5-1.5B-Instruct",
-            #     "messages": [
-            #         {
-            #             "role": "user",
-            #             "content": "What is the capital of Monaco?"
-            #         }
-            #     ]
-            # }
-                        
-                        
-            VLLM_URL = f'http://{req_data["vllms2"]}:{req_data["port"]}/vllm'
-            print(f'trying request vllm with da URL: {VLLM_URL}')
-            try:
-                response = requests.post(VLLM_URL, json={
-                    "req_type":"generate",
-                    "prompt":req_data["prompt"],
-                    "temperature":float(req_data["temperature"]),
-                    "top_p":float(req_data["top_p"]),
-                    "max_tokens":int(req_data["max_tokens"])
-                })
-                if response.status_code == 200:
-                    logging.info(f' [dockerrest]  status_code: {response.status_code}') 
-                    response_json = response.json()
-                    logging.info(f' [dockerrest]  response_json: {response_json}') 
-                    response_json["result_data"] = response_json["result_data"]
-                    return response_json["result_data"]                
-                else:
-                    logging.info(f' [dockerrest] response: {response}')
-                    return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
-            
-            except Exception as e:
-                print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-                return f'err {str(e)}'
-           
+            return JSONResponse({"result_status": 404, "result_data": f'{req_data["vllmcontainer"]} not found!'})
+  
         if req_data["req_method"] == "logs":
             req_container = client.containers.get(req_data["req_model"])
             res_logs = req_container.logs()
@@ -783,7 +803,9 @@ async def docker_rest(request: Request):
 
         if req_data["req_method"] == "load":
             print(f' * ! * ! * trying to load ....  0 ')
-            VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
+            # VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
+            # if req_data["vllmcontainer"] == "container_vllm_xoo":  ....
+            VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
             print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
             try:
                 response = requests.post(VLLM_URL, json={
