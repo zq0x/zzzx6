@@ -814,7 +814,7 @@ def gpu_to_pd():
 gpu_to_pd()
 
 
-VLLM_URL = f'http://container_vllm:{os.getenv("VLLM_PORT")}/vllmt'
+VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
 
 
 # def vllm_api(request: gr.Request): 

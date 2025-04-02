@@ -31,7 +31,31 @@ services:
           devices:
             - capabilities: [gpu]
     restart: unless-stopped
-
+  
+  audio:
+    build:
+      context: ./audio
+    ports:
+      - "8000:8000"
+    container_name: container_audio
+    environment:
+      - REDIS_PORT=6379
+      - AUDIO_IP=0.0.0.0
+      - AUDIO_PORT=8000
+    volumes:
+      - ./audio:/usr/src/app
+      - ./utils:/usr/src/app/utils    
+      - ../logs:/usr/src/app/logs
+      - /models:/models
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    restart: unless-stopped
+  
   vllm:
     build:
       context: ./vllm
@@ -46,7 +70,7 @@ services:
               capabilities: [gpu]
     ports:
       - "1371:1371"
-    container_name: container_vllm
+    container_name: container_vllm_xoo
     volumes:
       - /models:/models
     shm_size: 8gb
@@ -76,7 +100,7 @@ services:
               capabilities: [gpu]
     ports:
       - "1370:1370"
-    container_name: container_vllm2
+    container_name: container_vllm_oai
     volumes:
       - /root/.cache/huggingface/hub:/root/.cache/huggingface/hub
       - /models:/root/.cache/huggingface/hub
