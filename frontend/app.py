@@ -1387,7 +1387,7 @@ def create_app():
         with gr.Accordion(("Prompt Parameters"), open=False, visible=True) as acc_prompt:
             with gr.Column(scale=2):
                 llm_prompt_components = PromptComponents(
-                    vllms2=gr.Radio(["vLLM xoo (1370)", "vLLM oai (1371)", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                    vllms2=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="vLLM_xoo_1370", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
                     port=gr.Slider(1370, 1380, step=1, value=1375, label="port", info=f"Choose a port."),
                     prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
                     top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),
