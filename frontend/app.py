@@ -877,7 +877,9 @@ class VllmCreateValues:
     max_model_len: int
     tensor_parallel_size: int
     gpu_memory_utilization: int
-            
+
+
+
 @dataclass
 class VllmLoadComponents:
     method: gr.Textbox
@@ -1004,6 +1006,7 @@ def llm_load(*params):
 
         response = requests.post(BACKEND_URL, json={
             "req_method":req_params.method,
+            "req_vllmcontainer":req_params.vllmcontainer,
             "req_image":req_params.image,
             "req_port":req_params.port,
             "req_model":GLOBAL_SELECTED_MODEL_ID,
@@ -1354,7 +1357,7 @@ def create_app():
                     llm_prompt_components = PromptComponents(
                         vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_oai", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
                         port=gr.Slider(1370, 1380, step=1, value=1371, label="port", info=f"Choose a port."),
-                        prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
+                        prompt = gr.Textbox(placeholder="Ask a question", value="A famous quote", label="Prompt", show_label=True, visible=True),
                         top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),
                         temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
                         max_tokens=gr.Slider(50, 2500, step=25, value=150, label="max_tokens", info=f'Maximum number of tokens to generate per output sequence')
@@ -1387,8 +1390,8 @@ def create_app():
         vllm_timer = gr.Timer(1,active=True)
         vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
 
-        vllm_timer2 = gr.Timer(1,active=True)
-        vllm_timer2.tick(vllm_to_pd2, outputs=vllm_dataframe2)
+        # vllm_timer2 = gr.Timer(1,active=True)
+        # vllm_timer2.tick(vllm_to_pd2, outputs=vllm_dataframe2)
         
         disk_timer = gr.Timer(1,active=True)
         disk_timer.tick(disk_to_pd, outputs=disk_dataframe)

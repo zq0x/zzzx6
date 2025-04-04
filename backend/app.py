@@ -808,33 +808,48 @@ async def fndocker(request: Request):
             print(f' * ! * ! * trying to load ....  0 ')
             # VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
             # if req_data["vllmcontainer"] == "container_vllm_xoo":  ....
-            VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
-            print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
-            try:
-                response = requests.post(VLLM_URL, json={
-                    "req_type":"load",
-                    "max_model_len":int(req_data["req_max_model_len"]),
-                    "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
-                    "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
-                    "model":str(req_data["model_id"])
-                })
-                print(f' * ! * ! * trying to load ....  3 response {response}')
-                if response.status_code == 200:
-                    print(f' * ! * ! * trying to load ....  4 status_code: {response.status_code}')
-                    
-                    response_json = response.json()
-                    print(f' * ! * ! * trying to load ....  5 response_json: {response_json}')
-                    print(f' * ! * ! * trying to load ....  6 response_json["result_data"]: {response_json["result_data"]}')
-                    return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
-                else:
-                    print(f' * ! * ! * trying to load .... 7 ERRRRR')
-                    return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR'})
             
-            except Exception as e:
-                    print(f' * ! * ! * trying to load .... 8 ERRRRR')
-                    return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
+            print(f'  * ! * ! *  calling stop_vllm_container()')
+            res_stop_vllm_container = await stop_vllm_container()
+            print(f'  * ! * ! *  calling stop_vllm_container() -> res_stop_vllm_container -> {res_stop_vllm_container}')      
+            
+            # check if container exists with this model if yes start ..
+            if req_data["req_vllmcontainer"] == "container_vllm_oai":
+                return JSONResponse({"result_status": 500, "result_data": f'vllm/vllm-openai:latest load not supported!'})
+            
+            if req_data["req_vllmcontainer"] == "container_vllm_xoo":                
+                print(f'  * ! * ! *  starting container_vllm_xoo ...')
+                req_container = client.containers.get(req_data["req_model"])
+                req_container.start()
+                
+                VLLM_URL = f'http://{req_data["req_vllmcontainer"]}:{req_data["port"]}/vllm'
+                print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
+                try:
+                    response = requests.post(VLLM_URL, json={
+                        "req_type":"load",
+                        "max_model_len":int(req_data["req_max_model_len"]),
+                        "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
+                        "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
+                        "model":str(req_data["model_id"])
+                    })
+                    print(f' * ! * ! * trying to load ....  3 response {response}')
+                    if response.status_code == 200:
+                        print(f' * ! * ! * trying to load ....  4 status_code: {response.status_code}')
+                        
+                        response_json = response.json()
+                        print(f' * ! * ! * trying to load ....  5 response_json: {response_json}')
+                        print(f' * ! * ! * trying to load ....  6 response_json["result_data"]: {response_json["result_data"]}')
+                        return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
+                    else:
+                        print(f' * ! * ! * trying to load .... 7 ERRRRR')
+                        return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR'})
+                
+                except Exception as e:
+                        print(f' * ! * ! * trying to load .... 8 ERRRRR')
+                        return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
 
-
+            return JSONResponse({"result_status": 500, "result_data": f'{req_data["req_vllmcontainer"]} load not supported!'})
+        
         if req_data["req_method"] == "create":
             try:
                 req_container_name = str(req_data["req_model"]).replace('/', '_')
