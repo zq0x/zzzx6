@@ -551,14 +551,84 @@ async def redis_timer_gpu():
 # computed
 
 # aaaaa
+
+
+        
+def update_redis(**kwargs):
+    if not kwargs:
+        print(f"No data")
+        return False
+    if not 'db_name' in kwargs:
+        print(f'no db_name')
+        return False
+    else:
+        print(f'kwargs["db_name"]: {kwargs["db_name"]}')
+    if not kwargs["db_name"]:
+        print("Error: Missing 'db_name' in input data")
+        return False
+    
+    res_db_list = r.lrange(kwargs["db_name"], 0, -1)
+    if len(res_db_list) > 0:
+        print(f'found {len(res_db_list)} entries!')
+        
+        req_vllm_id_list = [entry for entry in res_db_list if json.loads(entry)["vllm_id"] == kwargs["vllm_id"]]
+        print(f'found req_vllm_id_list {req_vllm_id_list}!')
+        print(f'found req_vllm_id_list {len(req_vllm_id_list)}!')
+        
+        if len(req_vllm_id_list) > 0:
+            print(f'Found {kwargs["vllm_id"]}! Updating')
+            for entry in res_db_list:
+                parsed_entry = json.loads(entry)  # Convert JSON string to dictionary
+                print(f'*** parsed_entry {parsed_entry["vllm_id"]}!')
+                if parsed_entry["vllm_id"] == kwargs["vllm_id"]:
+                    print(f'found vllm_id {kwargs["vllm_id"]}!')
+                    r.lrem(kwargs["db_name"], 0, entry)
+                    print("entry deleted!")
+                    parsed_entry['ts'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print("trying push ...")
+                    r.rpush(kwargs["db_name"], json.dumps(parsed_entry))
+                    print("pushed!")
+        else:
+            print(f'didnt find {kwargs["vllm_id"]} yet! Creating')
+            update_data1 = {
+                "db_name": kwargs["db_name"],
+                "vllm_id": kwargs["vllm_id"],
+                "container": "b", 
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }        
+            r.rpush(kwargs["db_name"], json.dumps(update_data1))
+            print("created!")
+
+    else:
+        print("no entry found yet .. creating")
+        vllm_id = f'vllm_{str(int(datetime.now().timestamp()))}'
+        update_data1 = {
+            "db_name": kwargs["db_name"],
+            "vllm_id": kwargs["vllm_id"],
+            "container": "b", 
+            "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }        
+        r.rpush(kwargs["db_name"], json.dumps(update_data1))
+        print("created!")
+    return None
+
+
+
+
 def get_vllm_info():
     try:        
-        
+
         print(f' @@@ [get_vllm_info] testing redis ...!')
-        redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
-        print(f' @@@ [get_vllm_info] trying to save redis ...')
-        save_redis(**redis_data)
-        print(f' @@@ [get_vllm_info] saved redis!')
+        
+        update_data3 = {"db_name": "db_test13", "vllm_id": "10", "container": "b", "ts": f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'}
+        update_redis(**update_data3)
+        
+        
+        
+        # redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
+        # print(f' @@@ [get_vllm_info] trying to save redis ...')
+        # save_redis(**redis_data)
+        # print(f' @@@ [get_vllm_info] saved redis!')
 
         return f'{redis_data} saved!'
     except Exception as e:

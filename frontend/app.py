@@ -699,12 +699,14 @@ def get_redis(req_db_name, req_container_value):
     logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>>  {req_db_name} {req_container_value}')
     try:
         res_db_list = r.lrange(req_db_name, 0, -1)
+        res_db_list_json = [json.loads(entry) for entry in res_db_list]
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> REDIS COULDNT GET DATA RETURNING DEFAULT')
         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> REDIS COULDNT GET DATA RETURNING DEFAULT')
-        res_default = {"db_name": "0",
+        res_default = {
+            "db_name": "0",
             "vllm_id": "0",
             "model": "0", 
             "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -731,33 +733,6 @@ def get_redis(req_db_name, req_container_value):
 # print(f'{all_b}')
 
 # aaaaa
-
-def vllm_to_pd2():       
-    rows = []
-    try:
-        network_list = get_network_data()
-        # logging.info(f'[network_to_pd] network_list: {network_list}')  # Use logging.info instead of logging.exception
-        for entry in network_list:
-
-            rows.append({
-                "container": entry["container"],
-                "current_dl": entry["current_dl"]
-            })
-            
-            
-        df = pd.DataFrame(rows)
-        return df,rows[0]["current_dl"]
-    
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        rows.append({
-                "container": "0",
-                "current_dl": f'0',
-                "timestamp": f'0',
-                "info": f'0'
-        })
-        df = pd.DataFrame(rows)
-        return df
 
 
 # redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
@@ -787,7 +762,7 @@ def vllm_to_pd():
         logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
 
 vllm_to_pd()
-vllm_to_pd2()
+
 
 def gpu_to_pd():
     global GLOBAL_MEM_TOTAL
@@ -1271,7 +1246,7 @@ def create_app():
             with gr.Column(scale=4):
                 
                 
-                with gr.Row(visible=False) as row_select_vllm:
+                with gr.Row(visible=True) as row_select_vllm:
                     vllms=gr.Radio(["vLLM1", "vLLM2", "Create New"], value="vLLM1", show_label=False, info="Select a vLLM or create a new one. Where?")
                     
                 with gr.Accordion(("Create vLLM Parameters"), open=False, visible=True) as acc_create:
@@ -1337,7 +1312,7 @@ def create_app():
                     )  
                 with gr.Column(scale=1):
                     with gr.Row() as vllm_prompt_output:
-                        output_prompt = gr.Textbox(label="Prompt Output", lines=5, show_label=True)
+                        output_prompt = gr.Textbox(label="Prompt Output", lines=4, show_label=True)
                     with gr.Row() as vllm_prompt:
                         prompt_btn = gr.Button("PROMPT")
 
@@ -1362,9 +1337,6 @@ def create_app():
 
         vllm_timer = gr.Timer(1,active=True)
         vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
-
-        # vllm_timer2 = gr.Timer(1,active=True)
-        # vllm_timer2.tick(vllm_to_pd2, outputs=vllm_dataframe2)
         
         disk_timer = gr.Timer(1,active=True)
         disk_timer.tick(disk_to_pd, outputs=disk_dataframe)
@@ -1392,7 +1364,7 @@ def create_app():
                     audio_input = gr.Audio(label="Upload Audio", type="filepath")
                 
                 with gr.Column(scale=1):
-                    text_output = gr.Textbox(label="Transcription", lines=10)
+                    text_output = gr.Textbox(label="Transcription", lines=4)
                 
                     transcribe_btn = gr.Button("Transcribe")
                     transcribe_btn.click(
