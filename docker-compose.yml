@@ -20,6 +20,7 @@ services:
       - REDIS_PORT=6379
       - BACKEND_IP=0.0.0.0
       - BACKEND_PORT=7861
+      - CONTAINER_BACKEND=container_backend
       - VLLM_PORT=1370
     volumes:
       - ./backend:/usr/src/app
@@ -141,6 +142,7 @@ services:
       - CONTAINER_REDIS=container_redis
       - CONTAINER_FRONTEND=container_frontend
       - CONTAINER_BACKEND=container_backend
+      - CONTAINER_AUDIO=container_audio
       - BACKEND_PORT=7861
       - VLLM_PORT=1370
     volumes:
