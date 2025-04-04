@@ -819,9 +819,12 @@ async def fndocker(request: Request):
             
             if req_data["req_vllmcontainer"] == "container_vllm_xoo":                
                 print(f'  * ! * ! *  starting container_vllm_xoo ...')
-                req_container = client.containers.get(req_data["req_model"])
+                req_container = client.containers.get(req_data["req_vllmcontainer"])
+                print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ...')
                 req_container.start()
-                
+                print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ... zzz 60 sec safety')
+                time.sleep(60)
+                print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ... zzz .. awake! loading ...')
                 VLLM_URL = f'http://{req_data["req_vllmcontainer"]}:{req_data["port"]}/vllm'
                 print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
                 try:

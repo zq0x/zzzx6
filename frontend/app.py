@@ -975,7 +975,7 @@ def toggle_vllm_load_create(vllm_list):
     )
 
 def toggle_vllm_prompt(vllm_list_prompt):
-    return gr.Slider(value=9999)   
+    return gr.Textbox(value="9999")   
     # if "Create New" in vllm_list_prompt:
     #     return (
     #         gr.Accordion(open=False,visible=False),
@@ -1351,7 +1351,7 @@ def create_app():
         with gr.Accordion(("Prompt Parameters"), open=False, visible=True) as acc_prompt:
             with gr.Row():
                 with gr.Column(scale=2):
-                    testport = gr.Slider(1370, 1380, step=1, value=1371, label="testport", info=f"testport")
+                    testtext = gr.Textbox(placeholder="testplaceholder", value="testvalue", show_label=False, autofocus=True)
                     with gr.Row(visible=False) as row_select_vllm:
                         vllmsprompt=gr.Radio(["vLLM1", "vLLM2", "Create New"], value="vLLM1", show_label=False, info="Select a vLLM or create a new one. Where?")
                     llm_prompt_components = PromptComponents(
@@ -1946,7 +1946,7 @@ def create_app():
         vllmsprompt.change(
             toggle_vllm_prompt,
             vllmsprompt,
-            testport
+            testtext
         )
 
 
