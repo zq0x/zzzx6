@@ -945,7 +945,7 @@ async def fndocker(request: Request):
 
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return JSONResponse({"result_status": 500, "result_data": f'{req_data["max_model_len"]}'})
+        return JSONResponse({"result_status": 500, "result_data": f'{e}'})
 
 if __name__ == "__main__":
     import uvicorn
