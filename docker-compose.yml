@@ -5,7 +5,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - my_app_net
+      - sys_net
     restart: unless-stopped
   
   backend:
@@ -14,13 +14,14 @@ services:
     ports:
       - "7861:7861"
     networks:
-      - my_app_net
+      - sys_net
     container_name: container_backend
     environment:
       - REDIS_PORT=6379
       - BACKEND_IP=0.0.0.0
       - BACKEND_PORT=7861
       - CONTAINER_BACKEND=container_backend
+      - NETWORK=sys_net
       - VLLM_PORT=1370
     volumes:
       - ./backend:/usr/src/app
@@ -43,7 +44,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - my_app_net
+      - sys_net
     container_name: container_audio
     environment:
       - REDIS_PORT=6379
@@ -78,7 +79,7 @@ services:
     ports:
       - "1370:1370"
     networks:
-      - my_app_net
+      - sys_net
     container_name: container_vllm_xoo
     volumes:
       - /models:/models
@@ -110,7 +111,7 @@ services:
     ports:
       - "1371:1371"
     networks:
-      - my_app_net
+      - sys_net
     container_name: container_vllm_oai
     volumes:
       - /root/.cache/huggingface/hub:/root/.cache/huggingface/hub
@@ -131,7 +132,7 @@ services:
     ports:
       - "7860:7860"
     networks:
-      - my_app_net
+      - sys_net
     container_name: container_frontend
     depends_on:
       - backend
@@ -158,6 +159,6 @@ services:
     restart: unless-stopped
 
 networks:
-  my_app_net:
-    name: my_app_net
+  sys_net:
+    name: sys_net
     driver: bridge

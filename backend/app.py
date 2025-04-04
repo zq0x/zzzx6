@@ -653,12 +653,12 @@ print(f' %%%%% trying to start docker ...')
 client = docker.from_env()
 print(f' %%%%% docker started!')
 print(f' %%%%% trying to docker network ...')
-network_name = "my_app_net"
-try:
-    network = client.networks.get(network_name)
-except docker.errors.NotFound:
-    network = client.networks.create(network_name, driver="bridge")
-print(f' %%%%% docker network started! ...')
+network_name = "sys_net"
+# try:
+#     network = client.networks.get(network_name)
+# except docker.errors.NotFound:
+#     network = client.networks.create(network_name, driver="bridge")
+# print(f' %%%%% docker network started! ...')
 
 
 
@@ -895,7 +895,7 @@ async def fndocker(request: Request):
                         name=req_container_name,
                         runtime=req_data["req_runtime"],
                         shm_size=req_data["req_shm_size"],
-                        network=network_name,
+                        network={os.getenv("NETWORK")},
                         detach=True,
                         environment={
                             'NCCL_DEBUG': 'INFO',
