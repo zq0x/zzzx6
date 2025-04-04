@@ -964,6 +964,23 @@ def toggle_vllm_load_create(vllm_list):
         gr.Button(visible=False)
     )
 
+def toggle_vllm_prompt(vllm_list_prompt):
+    return gr.Slider(value=9999)   
+    # if "Create New" in vllm_list_prompt:
+    #     return (
+    #         gr.Accordion(open=False,visible=False),
+    #         gr.Button(visible=False),
+    #         gr.Accordion(open=True,visible=True),
+    #         gr.Button(visible=True)
+    #     )
+
+    # return (
+    #     gr.Accordion(open=True,visible=True),
+    #     gr.Button(visible=True),    
+    #     gr.Accordion(open=False,visible=False),
+    #     gr.Button(visible=False)
+    # )
+
    
     
 def llm_load(*params):
@@ -1323,9 +1340,12 @@ def create_app():
         with gr.Accordion(("Prompt Parameters"), open=False, visible=True) as acc_prompt:
             with gr.Row():
                 with gr.Column(scale=2):
+                    testport = gr.Slider(1370, 1380, step=1, value=1371, label="testport", info=f"testport")
+                    with gr.Row(visible=False) as row_select_vllm:
+                        vllmsprompt=gr.Radio(["vLLM1", "vLLM2", "Create New"], value="vLLM1", show_label=False, info="Select a vLLM or create a new one. Where?")
                     llm_prompt_components = PromptComponents(
-                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_xoo", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
-                        port=gr.Slider(1370, 1380, step=1, value=1370, label="port", info=f"Choose a port."),
+                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_oai", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                        port=gr.Slider(1370, 1380, step=1, value=1371, label="port", info=f"Choose a port."),
                         prompt = gr.Textbox(placeholder="Ask a question", value="Follow the", label="Prompt", show_label=True, visible=True),
                         top_p=gr.Slider(0.01, 1.0, step=0.01, value=0.95, label="top_p", info=f'Float that controls the cumulative probability of the top tokens to consider'),
                         temperature=gr.Slider(0.0, 0.99, step=0.01, value=0.8, label="temperature", info=f'Float that controls the randomness of the sampling. Lower values make the model more deterministic, while higher values make the model more random. Zero means greedy sampling'),
@@ -1912,10 +1932,10 @@ def create_app():
             [acc_load, vllm_load_actions, acc_create, vllm_create_actions]
         )
 
-        vllms.change(
-            toggle_vllm_load_create,
-            vllms,
-            [acc_load, vllm_load_actions, acc_create, vllm_create_actions]
+        vllmsprompt.change(
+            toggle_vllm_prompt,
+            vllmsprompt,
+            testport
         )
 
 

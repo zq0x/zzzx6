@@ -139,11 +139,7 @@ async def save_redis(**kwargs):
 
 
 
-print(f' @@@ testing redis ...!')
-redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
-print(f' @@@ trying to save redis ...')
-save_redis(**redis_data)
-print(f' @@@ saved redis!')
+
 
 
 
@@ -557,28 +553,16 @@ async def redis_timer_gpu():
 # aaaaa
 def get_vllm_info():
     try:        
-        res_container_list = client.containers.list(all=True)
-        vllm_containers_running = [c for c in res_container_list if c.name.startswith("container_vllm") and c.status == "running"]
-        vllm_info = []
-        # get db info from redis instead running model etc 
-        for vllm_container in vllm_containers_running:
-            current_vllm_info = {}
-            try:                
-                current_vllm_info['name'] = str(vllm_container.name)
-            except Exception as e:
-                print(f'[ERROR] [get_vllm_info] No name found for container {e}')
-                pass
+        
+        print(f' @@@ [get_vllm_info] testing redis ...!')
+        redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
+        print(f' @@@ [get_vllm_info] trying to save redis ...')
+        save_redis(**redis_data)
+        print(f' @@@ [get_vllm_info] saved redis!')
 
-            vllm_info.append({                
-                "db_name": current_vllm_info.get("name", "nix"),
-                "vllm_id": current_vllm_info.get("vllm_id", "nix"),
-                "model": current_vllm_info.get("model", "nix"),
-                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-
-        return vllm_info
+        return f'{redis_data} saved!'
     except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_vllm_info] {e}')
         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_vllm_info] [ERROR] e -> {e}')
         return f'{e}'
 
