@@ -586,33 +586,68 @@ total_vllm_info = get_vllm_info()
 async def redis_timer_vllm():
     while True:
         try:
-            total_vllm_info = get_vllm_info()
-            res_db_vllm = await r.get('db_vllm')
-            if res_db_vllm is not None:
-                db_vllm = json.loads(res_db_vllm)
-                updated_vllm_data = []
-                for vllm_i in range(0,len(total_vllm_info)):
+            current_network_info = get_network_info()
+            res_db_network = await r.get('db_vllm')
+            if res_db_network is not None:
+                db_network = json.loads(res_db_network)
+                updated_network_data = []
+                for net_info_obj in current_network_info:
                     update_data = {
-                        "vllm_i": vllm_i,
-                        "vllm_info": str(total_vllm_info[vllm_i]),
-                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        "container": str(net_info_obj["container"]),
+                        "info": str(net_info_obj["info"]),
+                        "current_dl": str(net_info_obj["current_dl"]),
+                        "timestamp": str(net_info_obj["timestamp"]),
                     }
-                    updated_vllm_data.append(update_data)
-                await r.set('db_vllm', json.dumps(updated_vllm_data))
+                    updated_network_data.append(update_data)
+                await r.set('db_vllm', json.dumps(updated_network_data))
             else:
-                updated_vllm_data = []
-                for vllm_i in range(0,len(total_vllm_info)):
+                updated_network_data = []
+                for net_info_obj in current_network_info:
                     update_data = {
-                        "vllm_i": vllm_i,
-                        "vllm_info": str(total_vllm_info[vllm_i]),
-                        "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        "container": str(net_info_obj["container"]),
+                        "info": str(net_info_obj["info"]),
+                        "current_dl": str(net_info_obj["current_dl"]),
+                        "timestamp": str(net_info_obj["timestamp"]),
                     }
-                    updated_vllm_data.append(update_data)
-                await r.set('db_vllm', json.dumps(updated_vllm_data))
+                    updated_network_data.append(update_data)
+                    # print(f'[network] 2 updated_network_data: {updated_network_data}')
+                await r.set('db_vllm', json.dumps(updated_network_data))
             await asyncio.sleep(1.0)
         except Exception as e:
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
+            logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [redis_timer_network] {e}')
             await asyncio.sleep(1.0)
+
+# async def redis_timer_vllm():
+#     while True:
+#         try:
+#             total_vllm_info = get_vllm_info()
+#             res_db_vllm = await r.get('db_vllm')
+#             if res_db_vllm is not None:
+#                 db_vllm = json.loads(res_db_vllm)
+#                 updated_vllm_data = []
+#                 for vllm_i in range(0,len(total_vllm_info)):
+#                     update_data = {
+#                         "vllm_i": vllm_i,
+#                         "vllm_info": str(total_vllm_info[vllm_i]),
+#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+#                     }
+#                     updated_vllm_data.append(update_data)
+#                 await r.set('db_vllm', json.dumps(updated_vllm_data))
+#             else:
+#                 updated_vllm_data = []
+#                 for vllm_i in range(0,len(total_vllm_info)):
+#                     update_data = {
+#                         "vllm_i": vllm_i,
+#                         "vllm_info": str(total_vllm_info[vllm_i]),
+#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+#                     }
+#                     updated_vllm_data.append(update_data)
+#                 await r.set('db_vllm', json.dumps(updated_vllm_data))
+#             await asyncio.sleep(1.0)
+#         except Exception as e:
+#             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
+#             await asyncio.sleep(1.0)
 
 
 @asynccontextmanager
@@ -678,8 +713,8 @@ async def fndocker(request: Request):
             print(f'got test!')
             print("req_data")
             print(req_data)
-            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>>')
-            logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] generate >>>>>>>>>>> ')
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] generate >>>>>>>>>>>')
+            logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] generate >>>>>>>>>>> ')
 
             if req_data["vllmcontainer"] == "container_vllm_oai":
                 VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/v1/chat/completions'
@@ -694,25 +729,25 @@ async def fndocker(request: Request):
                                         }
                         ]
                     })
-                    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response: {response}')
-                    logging.info(f' [dockerrest]  response: {response}') 
+                    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] response: {response}')
+                    logging.info(f' [docker]  response: {response}') 
                     if response.status_code == 200:
-                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] status_code: {response.status_code}')
-                        logging.info(f' [dockerrest]  status_code: {response.status_code}') 
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] status_code: {response.status_code}')
+                        logging.info(f' [docker]  status_code: {response.status_code}') 
                         
                         
                         response_json = response.json()
-                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] response_json: {response_json}')
-                        logging.info(f' [dockerrest]  response_json: {response_json}') 
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] response_json: {response_json}')
+                        logging.info(f' [docker]  response_json: {response_json}') 
                         
                         
                         message_content = response_json["choices"][0]["message"]["content"]
-                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [dockerrest] message_content: {message_content}')
-                        logging.info(f' [dockerrest]  message_content: {message_content}') 
+                        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] message_content: {message_content}')
+                        logging.info(f' [docker]  message_content: {message_content}') 
                         
                         return JSONResponse({"result_status": 200, "result_data": f'{message_content}'})              
                     else:
-                        logging.info(f' [dockerrest] response: {response}')
+                        logging.info(f' [docker] response: {response}')
                         return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
                 
                 except Exception as e:
@@ -732,18 +767,18 @@ async def fndocker(request: Request):
                         "max_tokens":int(req_data["max_tokens"])
                     })
                     if response.status_code == 200:
-                        logging.info(f' [dockerrest]  status_code: {response.status_code}') 
+                        logging.info(f' [docker]  status_code: {response.status_code}') 
                         response_json = response.json()
-                        logging.info(f' [dockerrest]  response_json: {response_json}') 
+                        logging.info(f' [docker]  response_json: {response_json}') 
                         response_json["result_data"] = response_json["result_data"]
-                        return response_json["result_data"]                
+                        return JSONResponse({"result_status": 200, "result_data": f'{response_json["result_data"]}'})
                     else:
-                        logging.info(f' [dockerrest] response: {response}')
+                        logging.info(f' [docker] response: {response}')
                         return JSONResponse({"result_status": 500, "result_data": f'ERRRR response.status_code {response.status_code} response{response}'})
                 
                 except Exception as e:
                     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-                    return f'err {str(e)}'
+                    return JSONResponse({"result_status": 500, "result_data": f'err {str(e)}'})
             
             return JSONResponse({"result_status": 404, "result_data": f'{req_data["vllmcontainer"]} not found!'})
   

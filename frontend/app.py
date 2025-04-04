@@ -695,8 +695,16 @@ def disk_to_pd():
 disk_to_pd()
 
 def get_redis(req_db_name, req_container_value):
+    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> {req_db_name} {req_container_value}')
+    logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>>  {req_db_name} {req_container_value}')
+    
     res_db_list = r.lrange(req_db_name, 0, -1)
+    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
+    logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
+    
     res_db_list_json = [json.loads(entry) for entry in res_db_list]
+    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
+    logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
     if res_db_list:
         # res_db_list = [json.loads(entry) for entry in res_db_list]
         # print(f'res_db_list: {res_db_list}')
@@ -705,6 +713,8 @@ def get_redis(req_db_name, req_container_value):
         # print(f'res_db_filtered: {res_db_filtered}')
         return res_db_filtered_kappa
     else:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
         print(f'No data found for {req_db_name}')
         return []
 
@@ -713,31 +723,60 @@ def get_redis(req_db_name, req_container_value):
 # print(f'{all_b}')
 
 # aaaaa
-redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
-def vllm_to_pd():
+
+def vllm_to_pd():       
     rows = []
     try:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
-        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
-        # vllm_list = get_vllm_data()
-        vllm_list = get_redis("db_vllm","b")
-        
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
-        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
-        for entry in vllm_list:
-            # vllm_info = ast.literal_eval(entry['vllm_info'])
-            rows.append({                
-                "db_name": entry.get("db_name", "0"),
-                "vllm_id": entry.get("vllm_id", "0"),
-                "model": entry.get("model", "0"),
-                "ts": entry.get("ts", "0")            
+        network_list = get_network_data()
+        # logging.info(f'[network_to_pd] network_list: {network_list}')  # Use logging.info instead of logging.exception
+        for entry in network_list:
+
+            rows.append({
+                "container": entry["container"],
+                "current_dl": entry["current_dl"]
             })
+            
+            
         df = pd.DataFrame(rows)
-        return df
+        return df,rows[0]["current_dl"]
     
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
+        rows.append({
+                "container": "0",
+                "current_dl": f'0',
+                "timestamp": f'0',
+                "info": f'0'
+        })
+        df = pd.DataFrame(rows)
+        return df
+
+
+# redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
+# def vllm_to_pd():
+#     rows = []
+#     try:
+#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+#         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+#         # vllm_list = get_vllm_data()
+#         vllm_list = get_redis("db_vllm","b")
+        
+#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
+#         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
+#         for entry in vllm_list:
+#             # vllm_info = ast.literal_eval(entry['vllm_info'])
+#             rows.append({                
+#                 "db_name": entry.get("db_name", "0"),
+#                 "vllm_id": entry.get("vllm_id", "0"),
+#                 "model": entry.get("model", "0"),
+#                 "ts": entry.get("ts", "0")            
+#             })
+#         df = pd.DataFrame(rows)
+#         return df
+    
+#     except Exception as e:
+#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+#         logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
 
 vllm_to_pd()
 
@@ -1338,7 +1377,7 @@ def create_app():
                 
         with gr.Accordion(("Automatic Speech Recognition"), open=False, visible=True) as acc_audio:
             with gr.Row():
-                with gr.Column(scale=4):
+                with gr.Column(scale=2):
                     audio_input = gr.Audio(label="Upload Audio", type="filepath")
                 
                 with gr.Column(scale=1):
