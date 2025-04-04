@@ -989,7 +989,7 @@ async def fndocker(request: Request):
                         image=req_data["image"],
                         name=req_container_name,
                         runtime=req_data["runtime"],
-                        shm_size=f'{req_data["shm_size"]}gb',
+                        shm_size=req_data["shm_size"],
                         network=network_name,
                         detach=True,
                         environment={
