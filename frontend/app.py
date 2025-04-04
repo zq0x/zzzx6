@@ -139,7 +139,7 @@ def get_disk_data():
 
 def get_docker_container_list():
     global docker_container_list
-    response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"list"})
+    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"list"})
     # print(f'[get_docker_container_list] response: {response}')
     res_json = response.json()
     # print(f'[get_docker_container_list] res_json: {res_json}')
@@ -154,7 +154,7 @@ def get_docker_container_list():
 
 def docker_api_logs(req_model):
     try:
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"logs","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"logs","req_model":req_model})
         res_json = response.json()
         return ''.join(res_json["result_data"])
     except Exception as e:
@@ -163,7 +163,7 @@ def docker_api_logs(req_model):
 
 def docker_api_network(req_container_name):
     try:
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"network","req_container_name":req_container_name})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"network","req_container_name":req_container_name})
         res_json = response.json()
         if res_json["result"] == 200:
             return f'{res_json["result_data"]["networks"]["eth0"]["rx_bytes"]}'
@@ -175,7 +175,7 @@ def docker_api_network(req_container_name):
     
 def docker_api_start(req_model):
     try:
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"start","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"start","req_model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
@@ -184,7 +184,7 @@ def docker_api_start(req_model):
 
 def docker_api_stop(req_model):
     try:
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"stop","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"stop","req_model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
@@ -193,40 +193,12 @@ def docker_api_stop(req_model):
 
 def docker_api_delete(req_model):
     try:
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"delete","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"delete","req_model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] error action delete {e}'
-
-def docker_api_create(req_model, req_pipeline_tag, req_port_model, req_port_vllm):
-    try:
-        req_container_name = str(req_model).replace('/', '_')
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method":"create","req_container_name":req_container_name,"req_model":req_model,"req_runtime":"nvidia","req_port_model":req_port_model,"req_port_vllm":req_port_vllm})
-        response_json = response.json()
-        
-        new_entry = [{
-            "gpu": 8,
-            "path": f'/home/cloud/.cache/huggingface/{req_model}',
-            "container": "0",
-            "container_status": "0",
-            "running_model": req_container_name,
-            "model": req_model,
-            "pipeline_tag": req_pipeline_tag,
-            "port_model": req_port_model,
-            "port_vllm": req_port_vllm
-        }]
-        r.set("db_gpu", json.dumps(new_entry))
-
-        print(response_json["result"])
-        if response_json["result"] == 200:
-            return f'{response_json["result_data"]}'
-        else:
-            return f'Create result ERR no container_id: {str(response_json)}'
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return f'error docker_api_create'
 
 def search_models(query):
     try:
@@ -824,7 +796,7 @@ gpu_to_pd()
 def refresh_container():
     try:
         global docker_container_list
-        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest', json={"req_method": "list"})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method": "list"})
         docker_container_list = response.json()
         return docker_container_list
     
@@ -905,7 +877,7 @@ class PromptValues:
     max_tokens: int
 
 
-BACKEND_URL = f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest'
+BACKEND_URL = f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker'
 
 def docker_api(req_type,req_model=None,req_task=None,req_prompt=None,req_temperature=None, req_config=None):
     
@@ -968,8 +940,6 @@ def llm_load(*params):
         response = requests.post(BACKEND_URL, json={
             "req_method":req_params.method,
             "req_image":req_params.image,
-            "req_runtime":req_params.runtime,
-            "req_shm_size":f'{str(req_params.shm_size)}gb',
             "req_port":req_params.port,
             "req_model":GLOBAL_SELECTED_MODEL_ID,
             "req_tensor_parallel_size":req_params.tensor_parallel_size,
@@ -1071,8 +1041,12 @@ def llm_prompt(*params):
             logging.info(f'!?!?!?!? [llm_prompt] got response == 200 building json ...  {response} ')
             res_json = response.json()        
             print(f' !?!?!?!? [llm_prompt] GOT RES_JSON: llm_prompt GLOBAL_SELECTED_MODEL_ID: {res_json} ')
-            logging.info(f'!?!?!?!? [llm_prompt] GOT RES_JSON: {res_json} ')          
-            return f'{res_json}'
+            logging.info(f'!?!?!?!? [llm_prompt] GOT RES_JSON: {res_json} ')
+            if res_json["result_status"] != 200:
+                print(f' !?!?!?!? [llm_prompt] res_json["result_status"] != 200: {res_json} ')
+                logging.exception(f'[llm_prompt] Response Error: {res_json["result_data"]}')
+                return f'{res_json}'
+            return f'{res_json["result_data"]}'
         else:
             logging.exception(f'[llm_prompt] Request Error: {response}')
             return f'Request Error: {response}'
@@ -1246,12 +1220,10 @@ def create_app():
                             selected_model_hf_data = gr.Textbox(label="hf_data", lines=20, elem_classes="table-cell")
                         with gr.Row():
                             selected_model_config_data = gr.Textbox(label="config_data", lines=20, elem_classes="table-cell")
-
-                    with gr.Row():
-                        port_model = gr.Number(value=8001,visible=False,label="Port of model: ")
-                        port_vllm = gr.Number(value=8000,visible=False,label="Port of vLLM: ")
                         
-        output = gr.Textbox(label="Output", show_label=True, visible=True)   
+        
+        
+        output = gr.Textbox(label="Output", lines=10, show_label=True, visible=True)   
         # aaaa
         kekw = gr.Textbox(label="kekw")
         with gr.Row(visible=True) as row_vllm:
@@ -1365,28 +1337,22 @@ def create_app():
                 
 
     
-
-                        
-        with gr.Row(visible=True) as row_audio:
-            gr.Markdown("## Faster-Whisper Audio Transcription")
-            gr.Markdown("Upload an audio file to transcribe it using a faster-whisper model.")
+        with gr.Accordion(("Automatic Speech Recognition"), open=False, visible=True) as acc_audio:
             with gr.Column(scale=2):
                 audio_input = gr.Audio(label="Upload Audio", type="filepath")
                 
-
             with gr.Column(scale=1):
                 text_output = gr.Textbox(label="Transcription", lines=10)
             
-            transcribe_btn = gr.Button("Transcribe")
-            transcribe_btn.click(
-                transcribe_audio,
-                inputs=audio_input,
-                outputs=text_output
-            )
+                transcribe_btn = gr.Button("Transcribe")
+                transcribe_btn.click(
+                    transcribe_audio,
+                    inputs=audio_input,
+                    outputs=text_output
+                )
         
-                
-
-            
+        
+        
         btn_interface = gr.Button("Load Interface",visible=False)
         @gr.render(inputs=[selected_model_pipeline_tag, selected_model_id], triggers=[btn_interface.click])
         def show_split(text_pipeline, text_model):
@@ -1435,15 +1401,15 @@ def create_app():
         @gr.render(inputs=container_state)
         def render_container(render_container_list):
             docker_container_list = get_docker_container_list()
-            docker_container_list_sys_running = [c for c in docker_container_list if c["State"]["Status"] == "running" and c["Name"] in ["/container_redis","/container_backend", "/container_frontend"]]
-            docker_container_list_sys_not_running = [c for c in docker_container_list if c["State"]["Status"] != "running" and c["Name"] in ["/container_redis","/container_backend", "/container_frontend"]]
-            docker_container_list_vllm_running = [c for c in docker_container_list if c["State"]["Status"] == "running" and c["Name"] not in ["/container_redis","/container_backend", "/container_frontend"]]
-            docker_container_list_vllm_not_running = [c for c in docker_container_list if c["State"]["Status"] != "running" and c["Name"] not in ["/container_redis","/container_backend", "/container_frontend"]]
+            docker_container_list_sys_running = [c for c in docker_container_list if c["State"]["Status"] == "running" and c["Name"] in [f'/{os.getenv("CONTAINER_REDIS")}',f'/{os.getenv("CONTAINER_BACKEND")}', f'/{os.getenv("CONTAINER_FRONTEND")}']]
+            docker_container_list_sys_not_running = [c for c in docker_container_list if c["State"]["Status"] != "running" and c["Name"] in [f'/{os.getenv("CONTAINER_REDIS")}',f'/{os.getenv("CONTAINER_BACKEND")}', f'/{os.getenv("CONTAINER_FRONTEND")}']]
+            docker_container_list_vllm_running = [c for c in docker_container_list if c["State"]["Status"] == "running" and c["Name"] not in [f'/{os.getenv("CONTAINER_REDIS")}',f'/{os.getenv("CONTAINER_BACKEND")}', f'/{os.getenv("CONTAINER_FRONTEND")}']]
+            docker_container_list_vllm_not_running = [c for c in docker_container_list if c["State"]["Status"] != "running" and c["Name"] not in [f'/{os.getenv("CONTAINER_REDIS")}',f'/{os.getenv("CONTAINER_BACKEND")}', f'/{os.getenv("CONTAINER_FRONTEND")}']]
 
             def refresh_container():
                 try:
                     global docker_container_list
-                    response = requests.post(f'http://container_backend:{str(int(os.getenv("CONTAINER_PORT"))+1)}/dockerrest', json={"req_method": "list"})
+                    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method": "list"})
                     docker_container_list = response.json()
                     return docker_container_list
                 
@@ -1680,31 +1646,6 @@ def create_app():
                     )
 
 
-
-
-
-
-
-
-
-
-
-            
-        
-        
-        
-        def refresh_container_list():
-            try:
-                global docker_container_list
-                response = requests.post(f'http://container_backend:{str(int(os.getenv("CONTAINER_PORT"))+1)}/dockerrest', json={"req_method": "list"})
-                docker_container_list = response.json()
-                return docker_container_list
-            except Exception as e:
-                print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-                return f'err {str(e)}'
-
-
-
         input_search.submit(
             search_models, 
             input_search, 
@@ -1938,7 +1879,7 @@ def create_app():
 
 # Launch the app
 if __name__ == "__main__":
-    backend_url = f'http://container_backend:{os.getenv("BACKEND_PORT")}/dockerrest'
+    backend_url = f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker'
     
     # Wait for the backend container to be online
     if wait_for_backend(backend_url):

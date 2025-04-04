@@ -668,8 +668,8 @@ async def stop_vllm_container():
 async def root():
     return f'Hello from server {os.getenv("BACKEND_PORT")}!'
 
-@app.post("/dockerrest")
-async def docker_rest(request: Request):
+@app.post("/docker")
+async def fndocker(request: Request):
     try:
         req_data = await request.json()
         
