@@ -923,6 +923,7 @@ async def fndocker(request: Request):
         if req_data["method"] == "create":
             try:
                 req_container_name = str(req_data["model"]).replace('/', '_')
+                req_container_name = req_container_name.split('_')[0]
                 ts = str(int(datetime.now().timestamp()))
                 req_container_name = f'container_vllm_{req_container_name}_{ts}'
                 
