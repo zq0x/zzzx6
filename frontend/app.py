@@ -724,7 +724,7 @@ def get_redis(req_db_name, req_container_value):
 
 # aaaaa
 
-def vllm_to_pd():       
+def vllm_to_pd2():       
     rows = []
     try:
         network_list = get_network_data()
@@ -753,32 +753,33 @@ def vllm_to_pd():
 
 
 # redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
-# def vllm_to_pd():
-#     rows = []
-#     try:
-#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
-#         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
-#         # vllm_list = get_vllm_data()
-#         vllm_list = get_redis("db_vllm","b")
+def vllm_to_pd():
+    rows = []
+    try:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] ** getting vllm_db data ...')
+        # vllm_list = get_vllm_data()
+        vllm_list = get_redis("db_vllm","b")
         
-#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
-#         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
-#         for entry in vllm_list:
-#             # vllm_info = ast.literal_eval(entry['vllm_info'])
-#             rows.append({                
-#                 "db_name": entry.get("db_name", "0"),
-#                 "vllm_id": entry.get("vllm_id", "0"),
-#                 "model": entry.get("model", "0"),
-#                 "ts": entry.get("ts", "0")            
-#             })
-#         df = pd.DataFrame(rows)
-#         return df
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [vllm_to_pd] got vllm_list: {vllm_list}')
+        for entry in vllm_list:
+            # vllm_info = ast.literal_eval(entry['vllm_info'])
+            rows.append({                
+                "db_name": entry.get("db_name", "0"),
+                "vllm_id": entry.get("vllm_id", "0"),
+                "model": entry.get("model", "0"),
+                "ts": entry.get("ts", "0")            
+            })
+        df = pd.DataFrame(rows)
+        return df
     
-#     except Exception as e:
-#         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-#         logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        logging.info(f' &&&&&& !!!  [ERROR] [vllm_to_pd] GOT e {e}')
 
 vllm_to_pd()
+vllm_to_pd2()
 
 def gpu_to_pd():
     global GLOBAL_MEM_TOTAL
@@ -1345,6 +1346,9 @@ def create_app():
             with gr.Accordion(("vLLM information"), open=False) as acc_vllm_dataframe:
                 vllm_dataframe = gr.Dataframe()
 
+            with gr.Accordion(("vLLM information2 test"), open=False) as acc_vllm_dataframe2:
+                vllm_dataframe2 = gr.Dataframe()
+
             with gr.Accordion(("Disk information"), open=False) as acc_disk_dataframe:
                 disk_dataframe = gr.Dataframe()
 
@@ -1354,6 +1358,9 @@ def create_app():
 
         vllm_timer = gr.Timer(1,active=True)
         vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
+
+        vllm_timer2 = gr.Timer(1,active=True)
+        vllm_timer2.tick(vllm_to_pd2, outputs=vllm_dataframe2)
         
         disk_timer = gr.Timer(1,active=True)
         disk_timer.tick(disk_to_pd, outputs=disk_dataframe)

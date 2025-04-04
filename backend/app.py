@@ -554,13 +554,13 @@ async def redis_timer_gpu():
 
 # computed
 
-
+# aaaaa
 def get_vllm_info():
     try:        
         res_container_list = client.containers.list(all=True)
         vllm_containers_running = [c for c in res_container_list if c.name.startswith("container_vllm") and c.status == "running"]
         vllm_info = []
-
+        # get db info from redis instead running model etc 
         for vllm_container in vllm_containers_running:
             current_vllm_info = {}
             try:                
@@ -569,9 +569,11 @@ def get_vllm_info():
                 print(f'[ERROR] [get_vllm_info] No name found for container {e}')
                 pass
 
-
             vllm_info.append({                
-                "name": current_vllm_info.get("name", "nix")
+                "db_name": current_vllm_info.get("name", "nix"),
+                "vllm_id": current_vllm_info.get("vllm_id", "nix"),
+                "model": current_vllm_info.get("model", "nix"),
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })
 
         return vllm_info
@@ -583,11 +585,11 @@ def get_vllm_info():
 
 total_vllm_info = get_vllm_info()
 
-async def redis_timer_vllm():
+async def redis_timer_vllm2():
     while True:
         try:
             current_network_info = get_network_info()
-            res_db_network = await r.get('db_vllm')
+            res_db_network = await r.get('db_vllm2')
             if res_db_network is not None:
                 db_network = json.loads(res_db_network)
                 updated_network_data = []
@@ -599,7 +601,7 @@ async def redis_timer_vllm():
                         "timestamp": str(net_info_obj["timestamp"]),
                     }
                     updated_network_data.append(update_data)
-                await r.set('db_vllm', json.dumps(updated_network_data))
+                await r.set('db_vllm2', json.dumps(updated_network_data))
             else:
                 updated_network_data = []
                 for net_info_obj in current_network_info:
@@ -611,43 +613,45 @@ async def redis_timer_vllm():
                     }
                     updated_network_data.append(update_data)
                     # print(f'[network] 2 updated_network_data: {updated_network_data}')
-                await r.set('db_vllm', json.dumps(updated_network_data))
+                await r.set('db_vllm2', json.dumps(updated_network_data))
             await asyncio.sleep(1.0)
         except Exception as e:
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [redis_timer_network] {e}')
             await asyncio.sleep(1.0)
 
-# async def redis_timer_vllm():
-#     while True:
-#         try:
-#             total_vllm_info = get_vllm_info()
-#             res_db_vllm = await r.get('db_vllm')
-#             if res_db_vllm is not None:
-#                 db_vllm = json.loads(res_db_vllm)
-#                 updated_vllm_data = []
-#                 for vllm_i in range(0,len(total_vllm_info)):
-#                     update_data = {
-#                         "vllm_i": vllm_i,
-#                         "vllm_info": str(total_vllm_info[vllm_i]),
-#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#                     }
-#                     updated_vllm_data.append(update_data)
-#                 await r.set('db_vllm', json.dumps(updated_vllm_data))
-#             else:
-#                 updated_vllm_data = []
-#                 for vllm_i in range(0,len(total_vllm_info)):
-#                     update_data = {
-#                         "vllm_i": vllm_i,
-#                         "vllm_info": str(total_vllm_info[vllm_i]),
-#                         "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-#                     }
-#                     updated_vllm_data.append(update_data)
-#                 await r.set('db_vllm', json.dumps(updated_vllm_data))
-#             await asyncio.sleep(1.0)
-#         except Exception as e:
-#             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
-#             await asyncio.sleep(1.0)
+async def redis_timer_vllm():
+    while True:
+        try:
+            total_vllm_info = get_vllm_info()
+            res_db_vllm = await r.get('db_vllm')
+            if res_db_vllm is not None:
+                db_vllm = json.loads(res_db_vllm)
+                updated_vllm_data = []
+                for vllm_i in range(0,len(total_vllm_info)):
+                    update_data = {
+                        "db_name": vllm_i,
+                        "vllm_id": vllm_i,
+                        "model": "redis_timer_vllm",
+                        "ts": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    }
+                    updated_vllm_data.append(update_data)
+                await r.set('db_vllm', json.dumps(updated_vllm_data))
+            else:
+                updated_vllm_data = []
+                for vllm_i in range(0,len(total_vllm_info)):
+                    update_data = {
+                        "db_name": vllm_i,
+                        "vllm_id": vllm_i,
+                        "model": "redis_timer_vllm",
+                        "ts": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    }
+                    updated_vllm_data.append(update_data)
+                await r.set('db_vllm', json.dumps(updated_vllm_data))
+            await asyncio.sleep(1.0)
+        except Exception as e:
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] Error: {e}')
+            await asyncio.sleep(1.0)
 
 
 @asynccontextmanager
@@ -655,7 +659,8 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(redis_timer_gpu())
     asyncio.create_task(redis_timer_disk())
     asyncio.create_task(redis_timer_network())
-    # asyncio.create_task(redis_timer_vllm())
+    asyncio.create_task(redis_timer_vllm())
+    asyncio.create_task(redis_timer_vllm2())
     yield
 
 app = FastAPI(lifespan=lifespan)
