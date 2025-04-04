@@ -32,7 +32,7 @@ def wait_for_backend(backend_url, timeout=300):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            response = requests.post(backend_url, json={"req_method": "list"}, timeout=REQUEST_TIMEOUT)
+            response = requests.post(backend_url, json={"method": "list"}, timeout=REQUEST_TIMEOUT)
             if response.status_code == 200:
                 print("Backend container is online.")
                 return True
@@ -139,7 +139,7 @@ def get_disk_data():
 
 def get_docker_container_list():
     global docker_container_list
-    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"list"})
+    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"list"})
     # print(f'[get_docker_container_list] response: {response}')
     res_json = response.json()
     # print(f'[get_docker_container_list] res_json: {res_json}')
@@ -154,7 +154,7 @@ def get_docker_container_list():
 
 def docker_api_logs(req_model):
     try:
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"logs","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"logs","model":req_model})
         res_json = response.json()
         return ''.join(res_json["result_data"])
     except Exception as e:
@@ -163,7 +163,7 @@ def docker_api_logs(req_model):
 
 def docker_api_network(req_container_name):
     try:
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"network","req_container_name":req_container_name})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"network","container_name":req_container_name})
         res_json = response.json()
         if res_json["result"] == 200:
             return f'{res_json["result_data"]["networks"]["eth0"]["rx_bytes"]}'
@@ -175,7 +175,7 @@ def docker_api_network(req_container_name):
     
 def docker_api_start(req_model):
     try:
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"start","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"start","model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
@@ -184,7 +184,7 @@ def docker_api_start(req_model):
 
 def docker_api_stop(req_model):
     try:
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"stop","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"stop","model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
@@ -193,7 +193,7 @@ def docker_api_stop(req_model):
 
 def docker_api_delete(req_model):
     try:
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method":"delete","req_model":req_model})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method":"delete","model":req_model})
         res_json = response.json()
         return res_json
     except Exception as e:
@@ -844,7 +844,7 @@ gpu_to_pd()
 def refresh_container():
     try:
         global docker_container_list
-        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method": "list"})
+        response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method": "list"})
         docker_container_list = response.json()
         return docker_container_list
     
@@ -929,33 +929,6 @@ class PromptValues:
 
 BACKEND_URL = f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker'
 
-def docker_api(req_type,req_model=None,req_task=None,req_prompt=None,req_temperature=None, req_config=None):
-    
-    try:
-        print(f'got model_config: {req_config} ')
-        response = requests.post(BACKEND_URL, json={
-            "req_type":req_type,
-            "req_model":req_model,
-            "req_task":req_task,
-            "req_prompt":req_prompt,
-            "req_temperature":req_temperature,
-            "req_model_config":req_config
-        })
-        
-        if response.status_code == 200:
-            response_json = response.json()
-            if response_json["result_status"] != 200:
-                logging.exception(f'[docker_api] Response Error: {response_json["result_data"]}')
-            return response_json["result_data"]                
-        else:
-            logging.exception(f'[docker_api] Request Error: {response}')
-            return f'Request Error: {response}'
-    
-    except Exception as e:
-        logging.exception(f'Exception occured: {e}', exc_info=True)
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return e
-
 
 def toggle_vllm_load_create(vllm_list):
     
@@ -1005,14 +978,14 @@ def llm_load(*params):
         req_params = VllmLoadComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
-            "req_method":req_params.method,
-            "req_vllmcontainer":req_params.vllmcontainer,
-            "req_image":req_params.image,
-            "req_port":req_params.port,
-            "req_model":GLOBAL_SELECTED_MODEL_ID,
-            "req_tensor_parallel_size":req_params.tensor_parallel_size,
-            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
-            "req_max_model_len":req_params.max_model_len
+            "method":req_params.method,
+            "vllmcontainer":req_params.vllmcontainer,
+            "image":req_params.image,
+            "port":req_params.port,
+            "model":GLOBAL_SELECTED_MODEL_ID,
+            "tensor_parallel_size":req_params.tensor_parallel_size,
+            "gpu_memory_utilization":req_params.gpu_memory_utilization,
+            "max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
 
 
@@ -1044,15 +1017,15 @@ def llm_create(*params):
         req_params = VllmCreateComponents(*params)
 
         response = requests.post(BACKEND_URL, json={
-            "req_method":req_params.method,
-            "req_image":req_params.image,
-            "req_runtime":req_params.runtime,
-            "req_shm_size":f'{str(req_params.shm_size)}gb',
-            "req_port":req_params.port,
-            "req_model":GLOBAL_SELECTED_MODEL_ID,
-            "req_tensor_parallel_size":req_params.tensor_parallel_size,
-            "req_gpu_memory_utilization":req_params.gpu_memory_utilization,
-            "req_max_model_len":req_params.max_model_len
+            "method":req_params.method,
+            "image":req_params.image,
+            "runtime":req_params.runtime,
+            "shm_size":f'{str(req_params.shm_size)}gb',
+            "port":req_params.port,
+            "model":GLOBAL_SELECTED_MODEL_ID,
+            "tensor_parallel_size":req_params.tensor_parallel_size,
+            "gpu_memory_utilization":req_params.gpu_memory_utilization,
+            "max_model_len":req_params.max_model_len
         }, timeout=REQUEST_TIMEOUT)
 
 
@@ -1094,7 +1067,7 @@ def llm_prompt(*params):
         }
 
         response = requests.post(BACKEND_URL, json={
-            "req_method":"generate",
+            "method":"generate",
             "model":GLOBAL_SELECTED_MODEL_ID,
             "vllmcontainer":getattr(req_params, "vllmcontainer", DEFAULTS_PROMPT["vllmcontainer"]),
             "port":getattr(req_params, "port", DEFAULTS_PROMPT["port"]),
@@ -1364,7 +1337,7 @@ def create_app():
                     )  
                 with gr.Column(scale=1):
                     with gr.Row() as vllm_prompt_output:
-                        output_prompt = gr.Textbox(label="Prompt Output", show_label=True)
+                        output_prompt = gr.Textbox(label="Prompt Output", lines=5, show_label=True)
                     with gr.Row() as vllm_prompt:
                         prompt_btn = gr.Button("PROMPT")
 
@@ -1486,7 +1459,7 @@ def create_app():
             def refresh_container():
                 try:
                     global docker_container_list
-                    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"req_method": "list"})
+                    response = requests.post(f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker', json={"method": "list"})
                     docker_container_list = response.json()
                     return docker_container_list
                 

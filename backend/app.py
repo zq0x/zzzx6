@@ -96,10 +96,10 @@ async def save_redis(**kwargs):
         res_db_list = r.lrange(kwargs["db_name"], 0, -1)
         if len(res_db_list) > 0:
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] found {len(res_db_list)} entries!')
-            req_vllm_id_list = [entry for entry in res_db_list if json.loads(entry)["vllm_id"] == kwargs["vllm_id"]]
-            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] found {len(req_vllm_id_list)} for {kwargs["vllm_id"]}')
+            vllm_id_list = [entry for entry in res_db_list if json.loads(entry)["vllm_id"] == kwargs["vllm_id"]]
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [save_redis] found {len(vllm_id_list)} for {kwargs["vllm_id"]}')
             
-            if len(req_vllm_id_list) > 0:
+            if len(vllm_id_list) > 0:
                 print(f'Found {kwargs["vllm_id"]}! Updating')                
                 for entry in res_db_list:
                     parsed_entry = json.loads(entry)  # Convert JSON string to dictionary
@@ -699,10 +699,7 @@ async def fndocker(request: Request):
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
 
-        if req_data["req_method"] == "generate":
-            print(f'got test!')
-            print("req_data")
-            print(req_data)
+        if req_data["method"] == "generate":
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] generate >>>>>>>>>>>')
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] generate >>>>>>>>>>> ')
 
@@ -772,39 +769,39 @@ async def fndocker(request: Request):
             
             return JSONResponse({"result_status": 404, "result_data": f'{req_data["vllmcontainer"]} not found!'})
   
-        if req_data["req_method"] == "logs":
-            req_container = client.containers.get(req_data["req_model"])
+        if req_data["method"] == "logs":
+            req_container = client.containers.get(req_data["model"])
             res_logs = req_container.logs()
             res_logs_str = res_logs.decode('utf-8')
             reversed_logs = "\n".join(res_logs_str.splitlines()[::-1])
             return JSONResponse({"result": 200, "result_data": reversed_logs})
 
-        if req_data["req_method"] == "network":
-            req_container = client.containers.get(req_data["req_container_name"])
+        if req_data["method"] == "network":
+            req_container = client.containers.get(req_data["container_name"])
             stats = req_container.stats(stream=False)
             return JSONResponse({"result": 200, "result_data": stats})
 
-        if req_data["req_method"] == "list":
+        if req_data["method"] == "list":
             res_container_list = client.containers.list(all=True)
             return JSONResponse([container.attrs for container in res_container_list])
 
-        if req_data["req_method"] == "delete":
-            req_container = client.containers.get(req_data["req_model"])
+        if req_data["method"] == "delete":
+            req_container = client.containers.get(req_data["model"])
             req_container.stop()
             req_container.remove(force=True)
             return JSONResponse({"result": 200})
 
-        if req_data["req_method"] == "stop":
-            req_container = client.containers.get(req_data["req_model"])
+        if req_data["method"] == "stop":
+            req_container = client.containers.get(req_data["model"])
             req_container.stop()
             return JSONResponse({"result": 200})
 
-        if req_data["req_method"] == "start":
-            req_container = client.containers.get(req_data["req_model"])
+        if req_data["method"] == "start":
+            req_container = client.containers.get(req_data["model"])
             req_container.start()
             return JSONResponse({"result": 200})
 
-        if req_data["req_method"] == "load":
+        if req_data["method"] == "load":
             print(f' * ! * ! * trying to load ....  0 ')
             # VLLM_URL = f'http://container_vllm_xoo:{os.getenv("VLLM_PORT")}/vllm'
             # if req_data["vllmcontainer"] == "container_vllm_xoo":  ....
@@ -814,26 +811,26 @@ async def fndocker(request: Request):
             print(f'  * ! * ! *  calling stop_vllm_container() -> res_stop_vllm_container -> {res_stop_vllm_container}')      
             
             # check if container exists with this model if yes start ..
-            if req_data["req_vllmcontainer"] == "container_vllm_oai":
+            if req_data["vllmcontainer"] == "container_vllm_oai":
                 return JSONResponse({"result_status": 500, "result_data": f'vllm/vllm-openai:latest load not supported!'})
             
-            if req_data["req_vllmcontainer"] == "container_vllm_xoo":                
+            if req_data["vllmcontainer"] == "container_vllm_xoo":                
                 print(f'  * ! * ! *  starting container_vllm_xoo ...')
-                req_container = client.containers.get(req_data["req_vllmcontainer"])
+                req_container = client.containers.get(req_data["vllmcontainer"])
                 print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ...')
                 req_container.start()
                 print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ... zzz 60 sec safety')
                 time.sleep(60)
                 print(f'  * ! * ! *  is started? [{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] ... zzz .. awake! loading ...')
-                VLLM_URL = f'http://{req_data["req_vllmcontainer"]}:{req_data["port"]}/vllm'
+                VLLM_URL = f'http://{req_data["vllmcontainer"]}:{req_data["port"]}/vllm'
                 print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
                 try:
                     response = requests.post(VLLM_URL, json={
-                        "req_type":"load",
-                        "max_model_len":int(req_data["req_max_model_len"]),
-                        "tensor_parallel_size":int(req_data["req_tensor_parallel_size"]),
-                        "gpu_memory_utilization":float(req_data["req_gpu_memory_utilization"]),
-                        "model":str(req_data["model_id"])
+                        "type":"load",
+                        "max_model_len":int(req_data["max_model_len"]),
+                        "tensor_parallel_size":int(req_data["tensor_parallel_size"]),
+                        "gpu_memory_utilization":float(req_data["gpu_memory_utilization"]),
+                        "model":str(req_data["model"])
                     })
                     print(f' * ! * ! * trying to load ....  3 response {response}')
                     if response.status_code == 200:
@@ -851,22 +848,22 @@ async def fndocker(request: Request):
                         print(f' * ! * ! * trying to load .... 8 ERRRRR')
                         return JSONResponse({"result_status": 500, "result_data": f'ERRRRRR 8'})
 
-            return JSONResponse({"result_status": 500, "result_data": f'{req_data["req_vllmcontainer"]} load not supported!'})
+            return JSONResponse({"result_status": 500, "result_data": f'{req_data["vllmcontainer"]} load not supported!'})
         
-        if req_data["req_method"] == "create":
+        if req_data["method"] == "create":
             try:
-                req_container_name = str(req_data["req_model"]).replace('/', '_')
+                req_container_name = str(req_data["model"]).replace('/', '_')
                 ts = str(int(datetime.now().timestamp()))
-                # req_container_name = f'container_vllm_{req_container_name}_{ts}'
+                req_container_name = f'container_vllm_{req_container_name}_{ts}'
                 
-                req_container_name = f'container_vllm_asdf'
+                # req_container_name = f'container_vllm_asdf'
                 
                 print(f' ************ calling req_container_name: {req_container_name}')
                 
-                if req_data["req_image"] == "vllm/vllm-openai:latest":
+                if req_data["image"] == "vllm/vllm-openai:latest":
                     print(f' !!!!! create found "vllm/vllm-openai:latest" !')
                 
-                if "xoo4foo/" in req_data["req_image"]:
+                if "xoo4foo/" in req_data["image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
                 
                 
@@ -875,14 +872,14 @@ async def fndocker(request: Request):
                 res_stop_vllm_container = await stop_vllm_container()
                 print(f' ************ calling stop_vllm_container() -> res_stop_vllm_container -> {res_stop_vllm_container}')      
                 
-                if req_data["req_image"] == "vllm/vllm-openai:latest":
+                if req_data["image"] == "vllm/vllm-openai:latest":
                     print(f' !!!!! create found "vllm/vllm-openai:latest" !')
                     res_container = client.containers.run(
                         build={"context": f'./{req_container_name}'},
-                        image=req_data["req_image"],
-                        runtime=req_data["req_runtime"],
+                        image=req_data["image"],
+                        runtime=req_data["runtime"],
                         ports={
-                            f'{req_data["req_port"]}/tcp': ("0.0.0.0", req_data["req_port"])
+                            f'{req_data["port"]}/tcp': ("0.0.0.0", req_data["port"])
                         },
                         container_name=f'{req_container_name}',
                         volumes={
@@ -890,51 +887,51 @@ async def fndocker(request: Request):
                             "/home/cloud/.cache/huggingface": {"bind": "/root/.cache/huggingface", "mode": "rw"},
                             "/models": {"bind": "/root/.cache/huggingface/hub", "mode": "rw"}
                         },
-                        shm_size=f'{req_data["req_shm_size"]}',
+                        shm_size=f'{req_data["shm_size"]}',
                         environment={
                             "NCCL_DEBUG": "INFO"
                         },
                         command=[
-                            f'--model {req_data["req_model"]}',
-                            f'--port {req_data["req_port"]}',
-                            f'--tensor-parallel-size {req_data["req_tensor_parallel_size"]}',
-                            f'--gpu-memory-utilization {req_data["req_gpu_memory_utilization"]}',
-                            f'--max-model-len {req_data["req_max_model_len"]}'
+                            f'--model {req_data["model"]}',
+                            f'--port {req_data["port"]}',
+                            f'--tensor-parallel-size {req_data["tensor_parallel_size"]}',
+                            f'--gpu-memory-utilization {req_data["gpu_memory_utilization"]}',
+                            f'--max-model-len {req_data["max_model_len"]}'
                         ]
                     )
                     container_id = res_container.id
                     return JSONResponse({"result_status": 200, "result_data": str(container_id)})
                 
-                if "xoo4foo/" in req_data["req_image"]:
+                if "xoo4foo/" in req_data["image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
                     print(f' !!!!! create found req_container_name: {req_container_name} !')
 
                     res_container = client.containers.run(
-                        image=req_data["req_image"],
+                        image=req_data["image"],
                         name=req_container_name,
-                        runtime=req_data["req_runtime"],
-                        shm_size=req_data["req_shm_size"],
+                        runtime=req_data["runtime"],
+                        shm_size=req_data["shm_size"],
                         network={os.getenv("NETWORK")},
                         detach=True,
                         environment={
                             'NCCL_DEBUG': 'INFO',
-                            'VLLM_PORT': req_data["req_port"]
+                            'VLLM_PORT': req_data["port"]
                         },
                         device_requests=[
                             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
                         ],
-                        ports={f'{req_data["req_port"]}': req_data["req_port"]},
+                        ports={f'{req_data["port"]}': req_data["port"]},
                         volumes={
                             '/logs': {'bind': '/logs', 'mode': 'rw'},
                             '/models': {'bind': '/models', 'mode': 'rw'}
                         },
                         command=[
                             "python", "app.py",
-                            "--model", req_data["req_model"],
-                            "--port", str(req_data["req_port"]),
-                            "--tensor-parallel-size", str(req_data["req_tensor_parallel_size"]),
-                            "--gpu-memory-utilization", str(req_data["req_gpu_memory_utilization"]),
-                            "--max-model-len", str(req_data["req_max_model_len"])
+                            "--model", req_data["model"],
+                            "--port", str(req_data["port"]),
+                            "--tensor-parallel-size", str(req_data["tensor_parallel_size"]),
+                            "--gpu-memory-utilization", str(req_data["gpu_memory_utilization"]),
+                            "--max-model-len", str(req_data["max_model_len"])
                         ]
                     )
                     
