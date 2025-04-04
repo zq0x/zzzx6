@@ -27,10 +27,10 @@ LOGFILE_CONTAINER = f'{LOG_PATH}/logfile_{os.getenv("CONTAINER_BACKEND")}.log'
 os.makedirs(os.path.dirname(LOGFILE_CONTAINER), exist_ok=True)
 logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.INFO, format='[%(asctime)s - %(name)s - %(levelname)s - %(message)s]')
 logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started logging in {LOGFILE_CONTAINER}')
-# print(f'** connecting to pynvml ... ')
+print(f'** connecting to pynvml ... ')
 pynvml.nvmlInit()
 device_count = pynvml.nvmlDeviceGetCount()
-# print(f'** pynvml found GPU: {device_count}')
+print(f'** pynvml found GPU: {device_count}')
 logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] pynvml found GPU: {device_count}')
 
 device_uuids = []
@@ -321,7 +321,6 @@ async def redis_timer_disk():
 
 
 
-pynvml.nvmlInit()
 def get_gpu_info():
     try:
 
@@ -556,19 +555,21 @@ async def redis_timer_gpu():
         
 def update_redis(**kwargs):
     if not kwargs:
-        print(f"No data")
+        print(f'[update_redis] No data')
         return False
     if not 'db_name' in kwargs:
-        print(f'no db_name')
+        print(f'[update_redis]  no db_name')
         return False
     else:
         print(f'kwargs["db_name"]: {kwargs["db_name"]}')
     if not kwargs["db_name"]:
-        print("Error: Missing 'db_name' in input data")
+        print(f'[update_redis] Error: Missing "db_name" in input data')
         return False
     
+    print(f'[update_redis] getting db ...')
     res_db_list = r.lrange(kwargs["db_name"], 0, -1)
-    if len(res_db_list) > 0:
+    print(f'[update_redis] got db: {res_db_list}')
+    if res_db_list:
         print(f'found {len(res_db_list)} entries!')
         
         req_vllm_id_list = [entry for entry in res_db_list if json.loads(entry)["vllm_id"] == kwargs["vllm_id"]]
@@ -621,8 +622,8 @@ def get_vllm_info():
         print(f' @@@ [get_vllm_info] testing redis ...!')
         
         update_data3 = {"db_name": "db_vllm", "vllm_id": "10", "container": "b", "ts": f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'}
-        update_redis(**update_data3)
-        
+        res_update_redis = update_redis(**update_data3)
+        print(f' @@@ [get_vllm_info] res_update_redis: {res_update_redis} ...!')
         
         
         # redis_data = {"db_name": "db_vllm", "vllm_id": "10", "model": "blabla", "ts": "123"}
@@ -983,7 +984,7 @@ async def fndocker(request: Request):
                 
                 if "xoo4foo/" in req_data["image"]:
                     print(f' !!!!! create found "xoo4foo/" !')
-                    print(f' !!!!! create found req_container_name: {req_container_name} !')
+                    print(f' !!!!! using req_container_name: {req_container_name} !')
 
                     res_container = client.containers.run(
                         image=req_data["image"],

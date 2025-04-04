@@ -1432,7 +1432,7 @@ def create_app():
                     return f'err {str(e)}'
 
 
-            with gr.Accordion(f'vLLM | Running {len(docker_container_list_vllm_running)} | Not Running {len(docker_container_list_vllm_not_running)}', open=False):
+            with gr.Accordion(f'vLLM | Running {len(docker_container_list_vllm_running)} | Not Running {len(docker_container_list_vllm_not_running)}', open=True):
                 gr.Markdown(f'### Running ({len(docker_container_list_vllm_running)})')
 
                 for current_container in docker_container_list_vllm_running:
@@ -1899,7 +1899,7 @@ def create_app():
         network_timer = gr.Timer(1,active=True)
         network_timer.tick(network_to_pd, outputs=[network_dataframe,kekw])
         
-        container_timer = gr.Timer(5,active=True)
+        container_timer = gr.Timer(20,active=True)
         container_timer.tick(refresh_container,outputs=[container_state])
 
 
