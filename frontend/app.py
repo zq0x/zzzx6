@@ -859,7 +859,7 @@ class VllmCreateValues:
 @dataclass
 class VllmLoadComponents:
     method: gr.Textbox
-    vllmcontainer: gr.Radio
+    vllmcontainer: gr.Textbox
     port: gr.Slider
     image: gr.Textbox
     max_model_len: gr.Slider
@@ -1275,7 +1275,8 @@ def create_app():
                     vllm_load_components = VllmLoadComponents(
 
                         method=gr.Textbox(value="load", label="method", info=f"yee the req_method."),
-                        vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_xoo", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
+                        vllmcontainer=gr.Textbox(value="container_vllm_xoo", label="vllmcontainer", info=f"Select a container name which is running vLLM"),
+                        # vllmcontainer=gr.Radio(["container_vllm_xoo", "container_vllm_oai", "Create New"], value="container_vllm_xoo", show_label=False, info="Select a vllms_prompt or create a new one. Where?"),
                         port=gr.Slider(1370, 1380, step=1, value=1370, label="port", info=f"Choose a port."),
                         image=gr.Textbox(value="xoo4foo/zzvllm44:latest", label="image", info=f"Dockerhub vLLM image"),
                                                                         
