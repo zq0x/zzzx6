@@ -620,7 +620,7 @@ def get_vllm_info():
 
         print(f' @@@ [get_vllm_info] testing redis ...!')
         
-        update_data3 = {"db_name": "db_test13", "vllm_id": "10", "container": "b", "ts": f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'}
+        update_data3 = {"db_name": "db_vllm", "vllm_id": "10", "container": "b", "ts": f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'}
         update_redis(**update_data3)
         
         
@@ -630,7 +630,7 @@ def get_vllm_info():
         # save_redis(**redis_data)
         # print(f' @@@ [get_vllm_info] saved redis!')
 
-        return f'{redis_data} saved!'
+        return f'{update_data3} saved!'
     except Exception as e:
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_vllm_info] {e}')
         logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_vllm_info] [ERROR] e -> {e}')

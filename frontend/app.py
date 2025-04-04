@@ -1369,7 +1369,7 @@ def create_app():
                     audio_input = gr.Audio(label="Upload Audio", type="filepath")
                 
                 with gr.Column(scale=1):
-                    text_output = gr.Textbox(label="Transcription", lines=4)
+                    text_output = gr.Textbox(label="Transcription", lines=8)
                 
                     transcribe_btn = gr.Button("Transcribe")
                     transcribe_btn.click(
