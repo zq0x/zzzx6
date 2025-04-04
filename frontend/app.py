@@ -1330,9 +1330,6 @@ def create_app():
             with gr.Accordion(("vLLM information"), open=False) as acc_vllm_dataframe:
                 vllm_dataframe = gr.Dataframe()
 
-            with gr.Accordion(("vLLM information2 test"), open=False) as acc_vllm_dataframe2:
-                vllm_dataframe2 = gr.Dataframe()
-
             with gr.Accordion(("Disk information"), open=False) as acc_disk_dataframe:
                 disk_dataframe = gr.Dataframe()
 
@@ -1340,17 +1337,7 @@ def create_app():
                 network_dataframe = gr.Dataframe()
 
 
-        vllm_timer = gr.Timer(1,active=True)
-        vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
-        
-        disk_timer = gr.Timer(1,active=True)
-        disk_timer.tick(disk_to_pd, outputs=disk_dataframe)
 
-        gpu_timer = gr.Timer(1,active=True)
-        gpu_timer.tick(gpu_to_pd, outputs=gpu_dataframe)
-
-        network_timer = gr.Timer(1,active=True)
-        network_timer.tick(network_to_pd, outputs=[network_dataframe,kekw])
 
 
 
@@ -1490,6 +1477,7 @@ def create_app():
                             outputs=[container_state]
                         )
 
+        
                         delete_btn.click(
                             docker_api_delete,
                             [container_id],
@@ -1899,7 +1887,20 @@ def create_app():
             testtext
         )
 
+        vllm_timer = gr.Timer(1,active=True)
+        vllm_timer.tick(vllm_to_pd, outputs=vllm_dataframe)
+        
+        disk_timer = gr.Timer(1,active=True)
+        disk_timer.tick(disk_to_pd, outputs=disk_dataframe)
 
+        gpu_timer = gr.Timer(1,active=True)
+        gpu_timer.tick(gpu_to_pd, outputs=gpu_dataframe)
+
+        network_timer = gr.Timer(1,active=True)
+        network_timer.tick(network_to_pd, outputs=[network_dataframe,kekw])
+        
+        container_timer = gr.Timer(5,active=True)
+        container_timer.tick(refresh_container,outputs=[container_state])
 
 
     return app

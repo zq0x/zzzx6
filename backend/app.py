@@ -966,6 +966,7 @@ async def fndocker(request: Request):
                             "/models": {"bind": "/root/.cache/huggingface/hub", "mode": "rw"}
                         },
                         shm_size=f'{req_data["shm_size"]}',
+                        network=network_name,
                         environment={
                             "NCCL_DEBUG": "INFO"
                         },
@@ -989,7 +990,7 @@ async def fndocker(request: Request):
                         name=req_container_name,
                         runtime=req_data["runtime"],
                         shm_size=f'{req_data["shm_size"]}gb',
-                        network={os.getenv("NETWORK")},
+                        network=network_name,
                         detach=True,
                         environment={
                             'NCCL_DEBUG': 'INFO',
