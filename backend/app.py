@@ -826,7 +826,7 @@ async def fndocker(request: Request):
                 print(f' * ! * ! * trying to load ....  1 VLLM_URL {VLLM_URL}')
                 try:
                     response = requests.post(VLLM_URL, json={
-                        "type":"load",
+                        "req_type":"load",
                         "max_model_len":int(req_data["max_model_len"]),
                         "tensor_parallel_size":int(req_data["tensor_parallel_size"]),
                         "gpu_memory_utilization":float(req_data["gpu_memory_utilization"]),
