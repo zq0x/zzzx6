@@ -696,8 +696,9 @@ async def root():
 async def fndocker(request: Request):
     try:
         req_data = await request.json()
-        
-   
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
+
         if req_data["req_method"] == "generate":
             print(f'got test!')
             print("req_data")

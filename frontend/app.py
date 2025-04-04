@@ -697,11 +697,19 @@ disk_to_pd()
 def get_redis(req_db_name, req_container_value):
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> {req_db_name} {req_container_value}')
     logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>>  {req_db_name} {req_container_value}')
-    
-    res_db_list = r.lrange(req_db_name, 0, -1)
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
-    logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
-    
+    try:
+        res_db_list = r.lrange(req_db_name, 0, -1)
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list {res_db_list}')
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> REDIS COULDNT GET DATA RETURNING DEFAULT')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> REDIS COULDNT GET DATA RETURNING DEFAULT')
+        res_default = {"db_name": "0",
+            "vllm_id": "0",
+            "model": "0", 
+            "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        return [res_default]
     res_db_list_json = [json.loads(entry) for entry in res_db_list]
     print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
     logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [get_redis] >>> GOT REQ >>> res_db_list_json {res_db_list_json}')
