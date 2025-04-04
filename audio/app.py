@@ -6,7 +6,8 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import os
 from faster_whisper import WhisperModel
-
+import pynvml
+import torch
 
 audio_model = None
 def load_audio(req_model_size):
@@ -22,23 +23,26 @@ def load_audio(req_model_size):
             raise
 
 def transcribe_audio(req_model_size,audio_file_path):
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [transcribe_audio] trying to load WhisperModel req_model_size: {req_model_size} ...')
-    load_audio(req_model_size)
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [transcribe_audio] WhisperModel loaded!')
-    
-    start_time = time.time()
-    
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [transcribe_audio] trying to transcribe path: {audio_file_path} ...')
-    segments, info = audio_model.transcribe(audio_file_path)
-    full_text = "\n".join([segment.text for segment in segments])
-    processing_time = time.time() - start_time
-    
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [transcribe_audio] finished transcribing audio from {audio_file_path}! lang found: {info.language} len text_length: {len(full_text)} in {processing_time:.2f}s ...')
-    
-    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [transcribe_audio] returning ...')
-    
-    return f"Detected language: {info.language}\n\n{full_text}\n\nProcessing time: {processing_time:.2f}s"
-
+    try:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to load WhisperModel req_model_size: {req_model_size} ...')
+        load_audio(req_model_size)
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] WhisperModel loaded!')
+        
+        start_time = time.time()
+        
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to transcribe path: {audio_file_path} ...')
+        segments, info = audio_model.transcribe(audio_file_path)
+        full_text = "\n".join([segment.text for segment in segments])
+        processing_time = time.time() - start_time
+        
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] finished transcribing audio from {audio_file_path}! lang found: {info.language} len text_length: {len(full_text)} in {processing_time:.2f}s ...')
+        
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] returning ...')
+        
+        return f"Detected language: {info.language}\n\n{full_text}\n\nProcessing time: {processing_time:.2f}s"
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] [error]: {e}')
+        return f"Error: {e}"
 
 
 redis_connection = None
@@ -100,8 +104,8 @@ async def root():
              
 @app.get("/t")
 async def fntest():
-    transcribe_audio("small","nk.mp3")
-    return f'ok trying to transcribe ...'
+    res_transcribe = transcribe_audio("small","nk.mp3")
+    return f'{res_transcribe}'
 
 if __name__ == "__main__":
     import uvicorn

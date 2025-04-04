@@ -922,6 +922,13 @@ async def fndocker(request: Request):
         
         if req_data["method"] == "create":
             try:
+                    
+                                
+                print(f'  !!!!!  calling stop_vllm_container()')
+                res_stop_vllm_container = await stop_vllm_container()
+                print(f'  !!!!!  calling stop_vllm_container() -> res_stop_vllm_container -> {res_stop_vllm_container}')      
+                
+            
                 req_container_name = str(req_data["model"]).replace('/', '_')
                 req_container_name = req_container_name.split('_')[0]
                 ts = str(int(datetime.now().timestamp()))
@@ -929,7 +936,7 @@ async def fndocker(request: Request):
                 
                 # req_container_name = f'container_vllm_asdf'
                 
-                print(f' ************ calling req_container_name: {req_container_name}')
+                print(f' !!!!! calling req_container_name: {req_container_name}')
                 
                 if req_data["image"] == "vllm/vllm-openai:latest":
                     print(f' !!!!! create found "vllm/vllm-openai:latest" !')
@@ -981,7 +988,7 @@ async def fndocker(request: Request):
                         image=req_data["image"],
                         name=req_container_name,
                         runtime=req_data["runtime"],
-                        shm_size=req_data["shm_size"],
+                        shm_size=f'{req_data["shm_size"]}gb',
                         network={os.getenv("NETWORK")},
                         detach=True,
                         environment={
