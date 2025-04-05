@@ -62,11 +62,6 @@ services:
       - ./utils:/usr/src/app/utils    
       - ../logs:/usr/src/app/logs
       - /models:/models
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
     restart: unless-stopped
 
 networks:

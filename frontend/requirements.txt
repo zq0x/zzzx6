@@ -3,5 +3,3 @@ transformers
 redis
 huggingface_hub
 tqdm
-gitpython
-torch

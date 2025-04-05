@@ -12,9 +12,9 @@ import requests
 from requests.exceptions import Timeout
 import huggingface_hub
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
-import git
-from git import Repo
-
+# import git
+# from git import Repo
+import subprocess
 res_container = {
   "INFO": [
     "Application startup complete.",
@@ -810,36 +810,97 @@ def format_bytes(req_format, req_size):
         raise ValueError("Invalid format specified. Use 'human' or 'bytes'.")
 
 
-def get_git_model_size(selected_id):    
-    try:
-        repo = Repo.clone_from(f'https://huggingface.co/{selected_id}', selected_id, no_checkout=True)
-    except git.exc.GitCommandError as e:
-        if "already exists and is not an empty directory" in str(e):
-            repo = Repo(selected_id)
-        else:
-            raise
+# def get_git_model_size(selected_id):    
+#     try:
+#         repo = Repo.clone_from(f'https://huggingface.co/{selected_id}', selected_id, no_checkout=True)
+#     except git.exc.GitCommandError as e:
+#         if "already exists and is not an empty directory" in str(e):
+#             repo = Repo(selected_id)
+#         else:
+#             raise
     
-    lfs_files = repo.git.lfs("ls-files", "-s").splitlines()
-    files_list = []
-    for line in lfs_files:
-        parts = line.split(" - ")
-        if len(parts) == 2:
-            file_hash, file_info = parts
-            file_parts = file_info.rsplit(" (", 1)
-            if len(file_parts) == 2:
-                file_name = file_parts[0]
-                size_str = file_parts[1].replace(")", "")
-                size_bytes = format_bytes("bytes",size_str)
+#     lfs_files = repo.git.lfs("ls-files", "-s").splitlines()
+#     files_list = []
+#     for line in lfs_files:
+#         parts = line.split(" - ")
+#         if len(parts) == 2:
+#             file_hash, file_info = parts
+#             file_parts = file_info.rsplit(" (", 1)
+#             if len(file_parts) == 2:
+#                 file_name = file_parts[0]
+#                 size_str = file_parts[1].replace(")", "")
+#                 size_bytes = format_bytes("bytes",size_str)
                 
-                files_list.append({
-                    "id": file_hash.strip(),
-                    "file": file_name.strip(),
-                    "size": size_bytes,
-                    "size_human": size_str
-                })
+#                 files_list.append({
+#                     "id": file_hash.strip(),
+#                     "file": file_name.strip(),
+#                     "size": size_bytes,
+#                     "size_human": size_str
+#                 })
             
         
-    return sum([file["size"] for file in files_list]), format_bytes("human",sum([file["size"] for file in files_list]))
+#     return sum([file["size"] for file in files_list]), format_bytes("human",sum([file["size"] for file in files_list]))
+    
+
+
+def convert_to_bytes(size_str):
+    """Convert human-readable file size to bytes"""
+    size_str = size_str.upper()
+    if 'KB' in size_str:
+        return int(float(size_str.replace('KB', '').strip()) * 1024)
+    elif 'MB' in size_str:
+        return int(float(size_str.replace('MB', '').strip()) * 1024 * 1024)
+    elif 'GB' in size_str:
+        return int(float(size_str.replace('GB', '').strip()) * 1024 * 1024 * 1024)
+    elif 'B' in size_str:
+        return int(float(size_str.replace('B', '').strip()))
+    return 0
+
+
+def get_git_model_size(selected_id):    
+  repo_url = "https://huggingface.co/intfloat/multilingual-e5-large"
+  repo_name = "multilingual-e5-large"
+
+  # Clone the repository without checking out files (if not already present)
+  try:
+      subprocess.run(["git", "clone", "--no-checkout", repo_url], check=True)
+  except subprocess.CalledProcessError:
+      # Repository might already exist, continue
+      pass
+
+  # Get the Git LFS file list
+  result = subprocess.run(
+      ["git", "lfs", "ls-files", "-s"], 
+      cwd=repo_name, 
+      capture_output=True, 
+      text=True, 
+      check=True
+  )
+  print(f'get_git_model_size {get_git_model_size}')
+  # Parse output into the desired format
+  files_list = []
+  for line in result.stdout.splitlines():
+      parts = line.split(" - ")
+      if len(parts) == 2:
+          file_hash, file_info = parts
+          # Handle cases where filename might contain spaces
+          file_parts = file_info.rsplit(" (", 1)
+          if len(file_parts) == 2:
+              file_name = file_parts[0]
+              size_str = file_parts[1].replace(")", "")
+              size_bytes = convert_to_bytes(size_str)
+              
+              files_list.append({
+                  "id": file_hash.strip(),
+                  "file": file_name.strip(),
+                  "size": size_bytes,
+                  "size_human": size_str  # Keeping human-readable format as well
+              })
+
+              
+        
+  return 0,0
+  return sum([file["size"] for file in files_list]), format_bytes("human",sum([file["size"] for file in files_list]))
     
 
 
