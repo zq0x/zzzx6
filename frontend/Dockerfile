@@ -4,6 +4,12 @@ WORKDIR /usr/src/app
 
 COPY requirements.txt .
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-get install -y git git-lfs && \
+    git lfs install && \
+    rm -rf /var/lib/apt/lists/*
+
+
 RUN pip install -r requirements.txt
 
 COPY . .
