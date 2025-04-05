@@ -39,12 +39,10 @@ services:
       - sys_net
     container_name: container_backend
     environment:
-      - REDIS_PORT=6379
       - BACKEND_IP=0.0.0.0
-      - BACKEND_PORT=7861
-      - CONTAINER_BACKEND=container_backend
-      - NETWORK=sys_net
       - VLLM_PORT=1370
+      - REDIS_PORT=6379
+      - BACKEND_PORT=7861
     volumes:
       - ./backend:/usr/src/app
       - ./utils:/usr/src/app/utils   
@@ -67,10 +65,6 @@ services:
       - backend
     environment:
       - FRONTEND_IP=0.0.0.0      
-      - CONTAINER_REDIS=container_redis
-      - CONTAINER_FRONTEND=container_frontend
-      - CONTAINER_BACKEND=container_backend
-      - CONTAINER_AUDIO=container_audio
       - VLLM_PORT=1370
       - FRONTEND_PORT=7860
       - BACKEND_PORT=7861
