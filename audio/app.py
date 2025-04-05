@@ -6,8 +6,7 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import os
 from faster_whisper import WhisperModel
-import pynvml
-import torch
+
 
 audio_model = None
 def load_audio(req_model_size):
@@ -57,40 +56,7 @@ def start_redis(req_redis_port):
         raise
 
 
-def initialize_nvml():
-    try:
-        pynvml.nvmlInit()
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [initialize_nvml] NVML initialized successfully.')
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [initialize_nvml] Failed to initialize NVML: {e}')
 
-initialize_nvml()
-
-
-def cuda_support_bool():
-    try:
-        res_cuda_support = torch.cuda.is_available()
-        if res_cuda_support:
-            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [cuda_support_bool] CUDA found')
-        else:
-            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [cuda_support_bool] CUDA not supported!')
-        return res_cuda_support
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [cuda_support_bool] {e}')
-        return False
-
-
-def cuda_device_count():
-    try:
-        res_gpu_int = torch.cuda.device_count()
-        res_gpu_int_arr = [i for i in range(res_gpu_int)]
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [cuda_support_bool] {str(res_gpu_int)}x GPUs found {res_gpu_int_arr}')
-        return res_gpu_int_arr
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [cuda_device_count] Failed to get device_count. Using default [0]. Error: {e}')
-        return [0]
-
-gpu_int_arr = cuda_device_count()
 
 
 
