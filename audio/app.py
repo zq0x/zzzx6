@@ -49,6 +49,8 @@ def transcribe_audio(audio_model,audio_path,device,compute_type):
         
         
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] finished transcribing audio from {audio_path}! lang found: {info.language} len text_length: {len(full_text)} in {processing_time:.2f}s ...')
+                
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] full_text {full_text}')
         
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] returning ...')
         

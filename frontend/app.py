@@ -658,6 +658,8 @@ def wait_for_backend(backend_url, timeout=300):
             response = requests.post(backend_url, json={"method": "list"}, timeout=REQUEST_TIMEOUT)
             if response.status_code == 200:
                 print("Backend container is online.")
+                print(f'\n\n ********************************** response:')
+                print(f'{response} ********************** \n\n')
                 return True
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             pass  # Backend is not yet reachable
@@ -672,7 +674,8 @@ def get_docker_container_list():
     response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/docker', json={"method":"list"})
     # print(f'[get_docker_container_list] response: {response}')
     res_json = response.json()
-    # print(f'[get_docker_container_list] res_json: {res_json}')
+    print(f'\n\n ********************************** [get_docker_container_list] res_json: {res_json}:')
+    print(f' ********************** \n\n')
     docker_container_list = res_json.copy()
     if response.status_code == 200:
         # print(f'[get_docker_container_list] res = 200')
@@ -1072,7 +1075,7 @@ def create_app():
                     ).then(
                       transcribe_audio,
                       [audio_model,audio_path,device,compute_type],
-                      [text_output,audio_path]
+                      text_output
                     )
         
         
