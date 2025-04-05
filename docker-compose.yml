@@ -8,6 +8,36 @@ services:
       - sys_net
     restart: unless-stopped
 
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "7861:7861"
+    networks:
+      - sys_net
+    container_name: container_backend
+    environment:
+      - REDIS_PORT=6379
+      - BACKEND_IP=0.0.0.0
+      - BACKEND_PORT=7861
+      - CONTAINER_BACKEND=container_backend
+      - NETWORK=sys_net
+      - VLLM_PORT=1370
+    volumes:
+      - ./backend:/usr/src/app
+      - ./utils:/usr/src/app/utils   
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../logs:/usr/src/app/logs
+      - /models:/models
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    restart: unless-stopped
+  
   frontend:
     build:
       context: ./frontend
