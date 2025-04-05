@@ -726,13 +726,10 @@ def docker_api_delete(req_model):
 def toggle_compute_type(device):
     
     if device == 'cpu':
-        return (
-            gr.Radio(["int8"], value="int8", label="Compute type", info="Select a compute type"),
-        )
+        return gr.update(["int8"], value="int8")
+    
+    return gr.update(["int8_float16", "float16"], value="float16")
 
-    return (
-        gr.Radio(["int8_float16", "float16"], value="float16", label="Compute type", info="Select a compute type"),
-    )
 
 
 def create_app():
