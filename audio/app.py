@@ -20,13 +20,13 @@ logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started 
 
 
 
-audio_model = None
+current_model = None
 def load_audio(req_audio_model,req_device,req_compute_type):
     try:
         global audio_model
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] trying to start WhisperModel with req_audio_model: {req_audio_model}')
-        if audio_model is None:
-            audio_model = WhisperModel(req_audio_model, device=req_device, compute_type=req_compute_type)
+        if current_model is None:
+            current_model = WhisperModel(req_audio_model, device=req_device, compute_type=req_compute_type)
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] [success] WhisperModel started!')
     
     except Exception as e:
@@ -42,7 +42,7 @@ def transcribe_audio(audio_model,audio_path,device,compute_type):
         start_time = time.time()
         
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to transcribe path: {audio_path} ...')
-        segments, info = audio_model.transcribe(audio_path)
+        segments, info = current_model.transcribe(audio_path)
         full_text = "\n".join([segment.text for segment in segments])
         processing_time = time.time() - start_time
         
