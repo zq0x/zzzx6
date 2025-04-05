@@ -31,11 +31,6 @@ services:
       - /models:/models
     depends_on:
       - redis
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
     restart: unless-stopped
   
   frontend:
