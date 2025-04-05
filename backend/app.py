@@ -49,6 +49,22 @@ network_name = "sys_net"
 async def root():
     return f'Hello from backend server {os.getenv("BACKEND_PORT")}!'
 
+@app.post("/docker")
+async def fndocker(request: Request):
+    try:
+        req_data = await request.json()
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [docker] req_data > {req_data}')
+        
+        
+        if req_data["method"] == "list":
+            res_container_list = client.containers.list(all=True)
+            return JSONResponse([container.attrs for container in res_container_list])
+
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        return JSONResponse({"result_status": 500, "result_data": f'{e}'})
+
 
 if __name__ == "__main__":
     import uvicorn
