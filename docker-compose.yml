@@ -74,7 +74,6 @@ services:
     container_name: container_frontend
     depends_on:
       - backend
-      - vllm
     environment:
       - FRONTEND_IP=0.0.0.0
       - FRONTEND_PORT=7860
