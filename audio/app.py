@@ -23,7 +23,7 @@ logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started 
 current_model = None
 def load_audio(req_audio_model,req_device,req_compute_type):
     try:
-        global audio_model
+        global current_model
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] trying to start WhisperModel with req_audio_model: {req_audio_model}')
         if current_model is None:
             current_model = WhisperModel(req_audio_model, device=req_device, compute_type=req_compute_type)
