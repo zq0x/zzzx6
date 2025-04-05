@@ -21,32 +21,34 @@ logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started 
 
 
 audio_model = None
-def load_audio(req_model_size):
+def load_audio(req_audio_model,req_device,req_compute_type):
     try:
         global audio_model
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] trying to start WhisperModel with size: {req_model_size}')
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] trying to start WhisperModel with req_audio_model: {req_audio_model}')
         if audio_model is None:
-            audio_model = WhisperModel(req_model_size, device="cpu", compute_type="int8")
+            audio_model = WhisperModel(req_audio_model, device=req_device, compute_type=req_compute_type)
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] [success] WhisperModel started!')
     
     except Exception as e:
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] [load_audio] [error] Failed to load WhisperModel')
             raise
 
-def transcribe_audio(req_model_size,audio_file_path):
+def transcribe_audio(audio_model,audio_path,device,compute_type):
     try:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to load WhisperModel req_model_size: {req_model_size} ...')
-        load_audio(req_model_size)
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to load WhisperModel audio_model: {audio_model} device: {device} compute_type: {compute_type} audio_path: {audio_path} ...')
+        load_audio(audio_model,device,compute_type)
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] WhisperModel loaded!')
         
         start_time = time.time()
         
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to transcribe path: {audio_file_path} ...')
-        segments, info = audio_model.transcribe(audio_file_path)
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] trying to transcribe path: {audio_path} ...')
+        segments, info = audio_model.transcribe(audio_path)
         full_text = "\n".join([segment.text for segment in segments])
         processing_time = time.time() - start_time
         
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] finished transcribing audio from {audio_file_path}! lang found: {info.language} len text_length: {len(full_text)} in {processing_time:.2f}s ...')
+        
+        
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] finished transcribing audio from {audio_path}! lang found: {info.language} len text_length: {len(full_text)} in {processing_time:.2f}s ...')
         
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [transcribe_audio] returning ...')
         
@@ -93,7 +95,7 @@ async def fnaudio(request: Request):
         if req_data["method"] == "transcribe":
             print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [{req_data["method"]}] trying to transcribe ...')
             logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [{req_data["method"]}] trying to transcribe ...')
-            res_transcribe = transcribe_audio(req_data["audio_model_size"],req_data["audio_file_path"])
+            res_transcribe = transcribe_audio(req_data["audio_model"],req_data["audio_path"],req_data["device"],req_data["compute_type"])
             return JSONResponse({"result_status": 200, "result_data": f'{res_transcribe}'})
 
 

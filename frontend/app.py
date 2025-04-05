@@ -65,6 +65,9 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
     logging.info(f' [START] SUCCESS! Loaded: {DEFAULTS_PATH}')
     logging.info(f' [START] {len(defaults_frontend['vllm_supported_architectures'])} supported vLLM architectures found!')
     logging.info(f' [START] {len(defaults_frontend['tested_models'])} tested_models found!')
+    logging.info(f' [START] {len(defaults_frontend['audio_models'])} audio_models found!')
+
+
 
 
 
@@ -593,10 +596,10 @@ def get_audio_path(audio_file):
     req_file = audio_file
     return [f'req_file: {req_file}', f'{req_file}']
 
-def transcribe_audio(audio_file_path):  
+def transcribe_audio(audio_model,audio_path,device,compute_type):  
     try:
-        print(f'[transcribe_audio] audio_file_path ... {audio_file_path}')
-        logging.info(f'[transcribe_audio] audio_file_path ... {audio_file_path}')
+        print(f'[transcribe_audio] audio_path ... {audio_path}')
+        logging.info(f'[transcribe_audio] audio_path ... {audio_path}')
       
         AUDIO_URL = f'http://container_audio:{os.getenv("AUDIO_PORT")}/t'
 
@@ -623,8 +626,10 @@ def transcribe_audio(audio_file_path):
       
                 response = requests.post(AUDIO_URL, json={
                     "method": "transcribe",
-                    "audio_model_size": "small",
-                    "audio_file_path": audio_file_path,
+                    "audio_model": audio_model,
+                    "audio_path": audio_path,
+                    "device": device,
+                    "compute_type": compute_type
                 })
 
                 print(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
@@ -716,6 +721,19 @@ def docker_api_delete(req_model):
         print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
         return f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] error action delete {e}'
 
+        
+                
+def toggle_compute_type(device):
+    
+    if device == 'cpu':
+        return (
+            gr.Radio(["int8"], value="int8", label="Compute type", info="Select a compute type"),
+        )
+
+    return (
+        gr.Radio(["int8_float16", "float16"], value="float16", label="Compute type", info="Select a compute type"),
+    )
+
 
 def create_app():
     with gr.Blocks() as app:
@@ -804,7 +822,7 @@ def create_app():
                     return f'err {str(e)}'
 
 
-            with gr.Accordion(f'vLLM | Running {len(docker_container_list_vllm_running)} | Not Running {len(docker_container_list_vllm_not_running)}', open=True):
+            with gr.Accordion(f'vLLM | Running {len(docker_container_list_vllm_running)} | Not Running {len(docker_container_list_vllm_not_running)}', open=False):
                 gr.Markdown(f'### Running ({len(docker_container_list_vllm_running)})')
 
                 for current_container in docker_container_list_vllm_running:
@@ -927,7 +945,7 @@ def create_app():
                     
             
 
-            with gr.Accordion(f'System | Running {len(docker_container_list_sys_running)} | Not Running {len(docker_container_list_sys_not_running)}', open=False):
+            with gr.Accordion(f'System | Running {len(docker_container_list_sys_running)} | Not Running {len(docker_container_list_sys_not_running)}', open=True):
                 gr.Markdown(f'### Running ({len(docker_container_list_sys_running)})')
 
                 for current_container in docker_container_list_sys_running:
@@ -1036,20 +1054,20 @@ def create_app():
         
         
         
-        
-        
-        
-        
-        
-        
+
+
+                
         with gr.Accordion(("Automatic Speech Recognition"), open=False, visible=True) as acc_audio:
             with gr.Row():
                 with gr.Column(scale=2):
                     audio_input = gr.Audio(label="Upload Audio", type="filepath")
-                
+                    audio_model=gr.Dropdown(defaults_frontend['audio_models'], label="Model size", info="Select a Faster-Whisper model")
+                    audio_path = gr.Textbox(visible=False)
+                    device=gr.Radio(["cpu", "cuda"], value="cpu", label="Select architecture", info="Your system supports CUDA!. Make sure all drivers installed. /checkcuda if cuda")
+                    compute_type=gr.Radio(["int8", "int8_float16", "float16"], value="int8", label="Compute type", info="Select a compute type")
                 with gr.Column(scale=1):
                     text_output = gr.Textbox(label="Transcription", lines=8)
-                    audio_path = gr.Textbox(visible=True)
+                    
                     transcribe_btn = gr.Button("Transcribe")
                     transcribe_btn.click(
                       get_audio_path,
@@ -1057,13 +1075,17 @@ def create_app():
                       [text_output,audio_path]
                     ).then(
                       transcribe_audio,
-                      audio_path,
-                      text_output,audio_path
+                      [audio_model,audio_path,device,compute_type],
+                      [text_output,audio_path]
                     )
         
         
         
-        
+        device.change(
+            toggle_compute_type,
+            device,
+            compute_type
+        )
         
         
         
@@ -1075,8 +1097,24 @@ def create_app():
             [model_dropdown,input_search]
         )
         
-        input_search.submit(search_models, inputs=input_search, outputs=[model_dropdown,input_search]).then(lambda: gr.update(visible=True), None, model_dropdown)
-        btn_search.click(search_models, inputs=input_search, outputs=[model_dropdown,input_search]).then(lambda: gr.update(visible=True), None, model_dropdown)
+        input_search.submit(
+            search_models, 
+            input_search, 
+            [model_dropdown,input_search]
+        ).then(
+            lambda: gr.update(visible=True),
+            None, 
+            model_dropdown
+        )
+        
+        btn_search.click(
+            search_models, input_search, 
+            [model_dropdown,input_search]
+        ).then(
+            lambda: gr.update(visible=True),
+            None,
+            model_dropdown
+        )
 
         btn_tested_models.click(
             dropdown_load_tested_models,
