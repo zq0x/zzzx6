@@ -1060,7 +1060,7 @@ def create_app():
                     audio_model=gr.Dropdown(defaults_frontend['audio_models'], label="Model size", info="Select a Faster-Whisper model")
                     audio_path = gr.Textbox(visible=False)
                     device=gr.Radio(["cpu", "cuda"], value="cpu", label="Select architecture", info="Your system supports CUDA!. Make sure all drivers installed. /checkcuda if cuda")
-                    compute_type=gr.Radio(["int8", "int8_float16", "float16"], value="int8", label="Compute type", info="Select a compute type")
+                    compute_type=gr.Radio(["int8"], value="int8", label="Compute type", info="Select a compute type")
                 with gr.Column(scale=1):
                     text_output = gr.Textbox(label="Transcription", lines=8)
                     
