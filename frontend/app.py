@@ -737,16 +737,16 @@ def create_app():
                 
                 with gr.Column(scale=1):
                     text_output = gr.Textbox(label="Transcription", lines=8)
-                    audio_path = gr.Textbox(visible=False)
+                    audio_path = gr.Textbox(visible=True)
                     transcribe_btn = gr.Button("Transcribe")
                     transcribe_btn.click(
                       get_audio_path,
                       audio_input,
                       [text_output,audio_path]
                     ).then(
-                      get_audio_path,
-                      audio_input,
-                      [text_output,audio_path]
+                      transcribe_audio,
+                      audio_path,
+                      text_output,audio_path
                     )
         
         
