@@ -16,7 +16,6 @@ import git
 from git import Repo
 
 
-import subprocess
 
 current_models_data = []
 db_gpu_data = []
@@ -726,9 +725,9 @@ def docker_api_delete(req_model):
 def toggle_compute_type(device):
     
     if device == 'cpu':
-        return gr.update(["int8"], value="int8")
+        return gr.update(choices=["int8"], value="int8")
     
-    return gr.update(["int8_float16", "float16"], value="float16")
+    return gr.update(choices=["int8_float16", "float16"], value="float16")
 
 
 
@@ -1081,7 +1080,7 @@ def create_app():
         device.change(
             toggle_compute_type,
             device,
-            compute_type
+            [compute_type]
         )
         
         
