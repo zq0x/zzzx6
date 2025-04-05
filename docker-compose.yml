@@ -25,6 +25,7 @@ services:
       - ./utils:/usr/src/app/utils    
       - ../logs:/usr/src/app/logs
       - /models:/models
+      - /tmp:/tmp
     depends_on:
       - redis
     restart: unless-stopped
@@ -79,6 +80,7 @@ services:
       - ./utils:/usr/src/app/utils    
       - ../logs:/usr/src/app/logs
       - /models:/models
+      - /tmp:/tmp
     restart: unless-stopped
 
 networks:
