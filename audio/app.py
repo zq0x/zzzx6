@@ -6,6 +6,18 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import os
 from faster_whisper import WhisperModel
+import logging
+
+
+
+LOG_PATH= './logs'
+LOGFILE_CONTAINER = f'{LOG_PATH}/logfile_container_audio.log'
+os.makedirs(os.path.dirname(LOGFILE_CONTAINER), exist_ok=True)
+logging.basicConfig(filename=LOGFILE_CONTAINER, level=logging.INFO, format='[%(asctime)s - %(name)s - %(levelname)s - %(message)s]')
+logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [START] started logging in {LOGFILE_CONTAINER}')
+
+
+
 
 
 audio_model = None
@@ -67,11 +79,33 @@ llm_instance = None
 @app.get("/")
 async def root():
     return f'Hello from audio server!'
-             
-@app.get("/t")
-async def fntest():
-    res_transcribe = transcribe_audio("small","nk.mp3")
-    return f'{res_transcribe}'
+
+@app.post("/t")
+async def fnaudio(request: Request):
+    try:
+        req_data = await request.json()
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [audio] req_data > {req_data}')
+        logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [audio] req_data > {req_data}')
+
+        if req_data["method"] == "status":
+            return JSONResponse({"result_status": 200, "result_data": f'ok'})
+
+        if req_data["method"] == "transcribe":
+            print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [{req_data["method"]}] trying to transcribe ...')
+            logging.info(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] [{req_data["method"]}] trying to transcribe ...')
+            res_transcribe = transcribe_audio(req_data["audio_model_size"],req_data["audio_file_path"])
+            return JSONResponse({"result_status": 200, "result_data": f'{res_transcribe}'})
+
+
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        return JSONResponse({"result_status": 500, "result_data": f'{e}'})
+
+
+
+
+
+
 
 if __name__ == "__main__":
     import uvicorn

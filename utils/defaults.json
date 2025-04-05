@@ -118,6 +118,41 @@
             "qwen2vlforconditionalgeneration",
             "zamba2forcausallm",
             "whisper"
+        ],
+        "tested_models": [
+            {
+                "id": "Qwen/Qwen2.5-1.5B-Instruct"
+            },
+            {
+                "id": "PowerInfer/SmallThinker-3B-Preview"
+            },
+            {
+                "id": "bigcode/starcoder2-3b"
+            },
+            {
+                "id": "bigcode/starcoder2-7b"
+            },
+            {
+                "id": "ibm-granite/granite-3.0-1b-a400m-base"
+            },
+            {
+                "id": "stabilityai/stablelm-3b-4e1t"
+            },
+            {
+                "id": "Qwen/Qwen1.5-MoE-A2.7B-Chat"
+            },
+            {
+                "id": "adept/persimmon-8b-chat"
+            },
+            {
+                "id": "adept/persimmon-8b-base"
+            },
+            {
+                "id": "allenai/OLMoE-1B-7B-0924-Instruct"
+            },
+            {
+                "id": "facebook/opt-125m"
+            }
         ]
     },
     "backend": {

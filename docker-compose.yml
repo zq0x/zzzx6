@@ -65,14 +65,15 @@ services:
     depends_on:
       - backend
     environment:
-      - FRONTEND_IP=0.0.0.0
-      - FRONTEND_PORT=7860
+      - FRONTEND_IP=0.0.0.0      
       - CONTAINER_REDIS=container_redis
       - CONTAINER_FRONTEND=container_frontend
       - CONTAINER_BACKEND=container_backend
       - CONTAINER_AUDIO=container_audio
-      - BACKEND_PORT=7861
       - VLLM_PORT=1370
+      - FRONTEND_PORT=7860
+      - BACKEND_PORT=7861
+      - AUDIO_PORT=8000
     volumes:
       - ./frontend:/usr/src/app
       - ./utils:/usr/src/app/utils    

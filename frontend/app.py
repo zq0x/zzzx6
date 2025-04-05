@@ -17,580 +17,6 @@ from git import Repo
 
 
 import subprocess
-res_container = {
-  "INFO": [
-    "Application startup complete.",
-    "Uvicorn running on http://0.0.0.0:7861 (Press CTRL+C to quit)"
-  ],
-  "containers": [
-    {
-      "container": "all",
-      "info": {
-        "name": "/dummy_container",
-        "id": "0000000000000000000000000000000000000000000000000000000000000000",
-        "read": "2025-01-01T00:00:00.000000000Z",
-        "preread": "2025-01-01T00:00:00.000000000Z",
-        "pids_stats": {
-          "current": 0,
-          "limit": 0
-        },
-        "blkio_stats": {
-          "io_service_bytes_recursive": "0",
-          "io_serviced_recursive": "0",
-          "io_queue_recursive": "0",
-          "io_service_time_recursive": "0",
-          "io_wait_time_recursive": "0",
-          "io_merged_recursive": "0",
-          "io_time_recursive": "0",
-          "sectors_recursive": "0"
-        },
-        "num_procs": 0,
-        "storage_stats": {},
-        "cpu_stats": {
-          "cpu_usage": {
-            "total_usage": 0,
-            "usage_in_kernelmode": 0,
-            "usage_in_usermode": 0
-          },
-          "system_cpu_usage": 0,
-          "online_cpus": 0,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "precpu_stats": {
-          "cpu_usage": {
-            "total_usage": 0,
-            "usage_in_kernelmode": 0,
-            "usage_in_usermode": 0
-          },
-          "system_cpu_usage": 0,
-          "online_cpus": 0,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "memory_stats": {
-          "usage": 0,
-          "stats": {
-            "active_anon": 0,
-            "active_file": 0,
-            "anon": 0,
-            "anon_thp": 0,
-            "file": 0,
-            "file_dirty": 0,
-            "file_mapped": 0,
-            "file_writeback": 0,
-            "inactive_anon": 0,
-            "inactive_file": 0,
-            "kernel_stack": 0,
-            "pgactivate": 0,
-            "pgdeactivate": 0,
-            "pgfault": 0,
-            "pglazyfree": 0,
-            "pglazyfreed": 0,
-            "pgmajfault": 0,
-            "pgrefill": 0,
-            "pgscan": 0,
-            "pgsteal": 0,
-            "shmem": 0,
-            "slab": 0,
-            "slab_reclaimable": 0,
-            "slab_unreclaimable": 0,
-            "sock": 0,
-            "thp_collapse_alloc": 0,
-            "thp_fault_alloc": 0,
-            "unevictable": 0,
-            "workingset_activate": 0,
-            "workingset_nodereclaim": 0,
-            "workingset_refault": 0
-          },
-          "limit": 0
-        },
-        "networks": {
-          "eth0": {
-            "rx_bytes": 0,
-            "rx_packets": 0,
-            "rx_errors": 0,
-            "rx_dropped": 0,
-            "tx_bytes": 0,
-            "tx_packets": 0,
-            "tx_errors": 0,
-            "tx_dropped": 0
-          }
-        }
-      },
-      "current_dl": "0.00 MBit/s (total: 558)",
-      "timestamp": "2025-03-08 00:39:03"
-    },
-    {
-      "container": "container_frontend",
-      "info": {
-        "name": "/container_frontend",
-        "id": "dd8cd00638baf6443594ad4ba5975381ae4da4938ba044f8deb4ae85017804ed",
-        "read": "2025-03-08T00:39:04.781135085Z",
-        "preread": "2025-03-08T00:39:03.778649876Z",
-        "pids_stats": {
-          "current": 15,
-          "limit": 60398
-        },
-        "blkio_stats": {
-          "io_service_bytes_recursive": "0",
-          "io_serviced_recursive": "0",
-          "io_queue_recursive": "0",
-          "io_service_time_recursive": "0",
-          "io_wait_time_recursive": "0",
-          "io_merged_recursive": "0",
-          "io_time_recursive": "0",
-          "sectors_recursive": "0"
-        },
-        "num_procs": 0,
-        "storage_stats": {},
-        "cpu_stats": {
-          "cpu_usage": {
-            "total_usage": 2407450000,
-            "usage_in_kernelmode": 171465000,
-            "usage_in_usermode": 2235985000
-          },
-          "system_cpu_usage": 242375940000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "precpu_stats": {
-          "cpu_usage": {
-            "total_usage": 493075000,
-            "usage_in_kernelmode": 55784000,
-            "usage_in_usermode": 437291000
-          },
-          "system_cpu_usage": 242360920000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "memory_stats": {
-          "usage": 238092288,
-          "stats": {
-            "active_anon": 230776832,
-            "active_file": 0,
-            "anon": 230821888,
-            "anon_thp": 0,
-            "file": 1523712,
-            "file_dirty": 1523712,
-            "file_mapped": 0,
-            "file_writeback": 0,
-            "inactive_anon": 0,
-            "inactive_file": 1523712,
-            "kernel_stack": 245760,
-            "pgactivate": 0,
-            "pgdeactivate": 0,
-            "pgfault": 63925,
-            "pglazyfree": 0,
-            "pglazyfreed": 0,
-            "pgmajfault": 0,
-            "pgrefill": 0,
-            "pgscan": 0,
-            "pgsteal": 0,
-            "shmem": 0,
-            "slab": 3599136,
-            "slab_reclaimable": 3137528,
-            "slab_unreclaimable": 461608,
-            "sock": 0,
-            "thp_collapse_alloc": 0,
-            "thp_fault_alloc": 0,
-            "unevictable": 0,
-            "workingset_activate": 0,
-            "workingset_nodereclaim": 0,
-            "workingset_refault": 0
-          },
-          "limit": 52784435200
-        },
-        "networks": {
-          "eth0": {
-            "rx_bytes": 752,
-            "rx_packets": 10,
-            "rx_errors": 0,
-            "rx_dropped": 0,
-            "tx_bytes": 84,
-            "tx_packets": 2,
-            "tx_errors": 0,
-            "tx_dropped": 0
-          }
-        }
-      },
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:04"
-    },
-    {
-      "container": "container_backend",
-      "info": {
-        "name": "/container_backend",
-        "id": "ee915ffe402a7e3b566899fd04a5f9c632ca642c26016bdc7db417613dfb0ee0",
-        "read": "2025-03-08T00:39:06.785085952Z",
-        "preread": "2025-03-08T00:39:05.782821461Z",
-        "pids_stats": {
-          "current": 2,
-          "limit": 60398
-        },
-        "blkio_stats": {
-          "io_service_bytes_recursive": "0",
-          "io_serviced_recursive": "0",
-          "io_queue_recursive": "0",
-          "io_service_time_recursive": "0",
-          "io_wait_time_recursive": "0",
-          "io_merged_recursive": "0",
-          "io_time_recursive": "0",
-          "sectors_recursive": "0"
-        },
-        "num_procs": 0,
-        "storage_stats": {},
-        "cpu_stats": {
-          "cpu_usage": {
-            "total_usage": 673737000,
-            "usage_in_kernelmode": 90502000,
-            "usage_in_usermode": 583235000
-          },
-          "system_cpu_usage": 242405990000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "precpu_stats": {
-          "cpu_usage": {
-            "total_usage": 673737000,
-            "usage_in_kernelmode": 90502000,
-            "usage_in_usermode": 583235000
-          },
-          "system_cpu_usage": 242390960000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "memory_stats": {
-          "usage": 65626112,
-          "stats": {
-            "active_anon": 62664704,
-            "active_file": 0,
-            "anon": 62672896,
-            "anon_thp": 0,
-            "file": 860160,
-            "file_dirty": 860160,
-            "file_mapped": 0,
-            "file_writeback": 0,
-            "inactive_anon": 0,
-            "inactive_file": 860160,
-            "kernel_stack": 32768,
-            "pgactivate": 0,
-            "pgdeactivate": 0,
-            "pgfault": 21873,
-            "pglazyfree": 0,
-            "pglazyfreed": 0,
-            "pgmajfault": 0,
-            "pgrefill": 0,
-            "pgscan": 0,
-            "pgsteal": 0,
-            "shmem": 0,
-            "slab": 1801544,
-            "slab_reclaimable": 1539040,
-            "slab_unreclaimable": 262504,
-            "sock": 0,
-            "thp_collapse_alloc": 0,
-            "thp_fault_alloc": 0,
-            "unevictable": 0,
-            "workingset_activate": 0,
-            "workingset_nodereclaim": 0,
-            "workingset_refault": 0
-          },
-          "limit": 52784435200
-        },
-        "networks": {
-          "eth0": {
-            "rx_bytes": 1322,
-            "rx_packets": 19,
-            "rx_errors": 0,
-            "rx_dropped": 0,
-            "tx_bytes": 126,
-            "tx_packets": 3,
-            "tx_errors": 0,
-            "tx_dropped": 0
-          }
-        }
-      },
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:06"
-    },
-    {
-      "container": "container_vllm",
-      "info": {
-        "name": "/container_vllm",
-        "id": "1ec72d9ddca02d724d60b912af78b8bf54318ebd27037c58e26a7cd674f41e69",
-        "read": "2025-03-08T00:39:08.789481597Z",
-        "preread": "2025-03-08T00:39:07.786951635Z",
-        "pids_stats": {
-          "current": 19,
-          "limit": 60398
-        },
-        "blkio_stats": {
-          "io_service_bytes_recursive": [
-            {
-              "major": 253,
-              "minor": 0,
-              "op": "read",
-              "value": 0
-            },
-            {
-              "major": 253,
-              "minor": 0,
-              "op": "write",
-              "value": 2170880
-            }
-          ],
-          "io_serviced_recursive": "0",
-          "io_queue_recursive": "0",
-          "io_service_time_recursive": "0",
-          "io_wait_time_recursive": "0",
-          "io_merged_recursive": "0",
-          "io_time_recursive": "0",
-          "sectors_recursive": "0"
-        },
-        "num_procs": 0,
-        "storage_stats": {},
-        "cpu_stats": {
-          "cpu_usage": {
-            "total_usage": 4958235000,
-            "usage_in_kernelmode": 1286219000,
-            "usage_in_usermode": 3672016000
-          },
-          "system_cpu_usage": 242435970000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "precpu_stats": {
-          "cpu_usage": {
-            "total_usage": 4957435000,
-            "usage_in_kernelmode": 1286011000,
-            "usage_in_usermode": 3671423000
-          },
-          "system_cpu_usage": 242421020000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "memory_stats": {
-          "usage": 404107264,
-          "stats": {
-            "active_anon": 387440640,
-            "active_file": 0,
-            "anon": 387440640,
-            "anon_thp": 0,
-            "file": 2170880,
-            "file_dirty": 0,
-            "file_mapped": 0,
-            "file_writeback": 0,
-            "inactive_anon": 0,
-            "inactive_file": 2170880,
-            "kernel_stack": 311296,
-            "pgactivate": 0,
-            "pgdeactivate": 0,
-            "pgfault": 122268,
-            "pglazyfree": 0,
-            "pglazyfreed": 0,
-            "pgmajfault": 0,
-            "pgrefill": 0,
-            "pgscan": 0,
-            "pgsteal": 0,
-            "shmem": 0,
-            "slab": 11875384,
-            "slab_reclaimable": 11206888,
-            "slab_unreclaimable": 668496,
-            "sock": 0,
-            "thp_collapse_alloc": 0,
-            "thp_fault_alloc": 0,
-            "unevictable": 0,
-            "workingset_activate": 0,
-            "workingset_nodereclaim": 0,
-            "workingset_refault": 0
-          },
-          "limit": 52784435200
-        },
-        "networks": {
-          "eth0": {
-            "rx_bytes": 1560,
-            "rx_packets": 24,
-            "rx_errors": 0,
-            "rx_dropped": 0,
-            "tx_bytes": 126,
-            "tx_packets": 3,
-            "tx_errors": 0,
-            "tx_dropped": 0
-          }
-        }
-      },
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:08"
-    },
-    {
-      "container": "container_redis",
-      "info": {
-        "name": "/container_redis",
-        "id": "78fd33fe7b6904c2e9fe3b614098cba262916be9271762088f28b9bda652d5c1",
-        "read": "2025-03-08T00:39:10.793574274Z",
-        "preread": "2025-03-08T00:39:09.791041164Z",
-        "pids_stats": {
-          "current": 6,
-          "limit": 60398
-        },
-        "blkio_stats": {
-          "io_service_bytes_recursive": "0",
-          "io_serviced_recursive": "0",
-          "io_queue_recursive": "0",
-          "io_service_time_recursive": "0",
-          "io_wait_time_recursive": "0",
-          "io_merged_recursive": "0",
-          "io_time_recursive": "0",
-          "sectors_recursive": "0"
-        },
-        "num_procs": 0,
-        "storage_stats": {},
-        "cpu_stats": {
-          "cpu_usage": {
-            "total_usage": 50150000,
-            "usage_in_kernelmode": 18945000,
-            "usage_in_usermode": 31204000
-          },
-          "system_cpu_usage": 242466030000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "precpu_stats": {
-          "cpu_usage": {
-            "total_usage": 48547000,
-            "usage_in_kernelmode": 18064000,
-            "usage_in_usermode": 30483000
-          },
-          "system_cpu_usage": 242451000000000,
-          "online_cpus": 15,
-          "throttling_data": {
-            "periods": 0,
-            "throttled_periods": 0,
-            "throttled_time": 0
-          }
-        },
-        "memory_stats": {
-          "usage": 3633152,
-          "stats": {
-            "active_anon": 3006464,
-            "active_file": 0,
-            "anon": 3006464,
-            "anon_thp": 0,
-            "file": 0,
-            "file_dirty": 0,
-            "file_mapped": 0,
-            "file_writeback": 0,
-            "inactive_anon": 0,
-            "inactive_file": 0,
-            "kernel_stack": 98304,
-            "pgactivate": 0,
-            "pgdeactivate": 0,
-            "pgfault": 2719,
-            "pglazyfree": 0,
-            "pglazyfreed": 0,
-            "pgmajfault": 0,
-            "pgrefill": 0,
-            "pgscan": 0,
-            "pgsteal": 0,
-            "shmem": 0,
-            "slab": 350048,
-            "slab_reclaimable": 135560,
-            "slab_unreclaimable": 214488,
-            "sock": 0,
-            "thp_collapse_alloc": 0,
-            "thp_fault_alloc": 0,
-            "unevictable": 0,
-            "workingset_activate": 0,
-            "workingset_nodereclaim": 0,
-            "workingset_refault": 0
-          },
-          "limit": 52784435200
-        },
-        "networks": {
-          "eth0": {
-            "rx_bytes": 2624,
-            "rx_packets": 38,
-            "rx_errors": 0,
-            "rx_dropped": 0,
-            "tx_bytes": 658,
-            "tx_packets": 11,
-            "tx_errors": 0,
-            "tx_dropped": 0
-          }
-        }
-      },
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:10"
-    }
-  ],
-  "gpu_data": [
-    {
-      "gpu_i": 0,
-      "gpu_info": "{'gpu_i': 0, 'current_uuid': 'GPU-5119e922-1797-1ace-ec58-cc0a2772f5ee', 'gpu_util': 0.0, 'mem_used': 403.75, 'mem_total': 8192.0, 'mem_util': 4.9285888671875}",
-      "timestamp": "2025-03-08 00:39:10"
-    }
-  ],
-  "network_data": [
-    {
-      "container": "all",
-      "info": "all",
-      "current_dl": "0.00 MBit/s (total: 558)",
-      "timestamp": "2025-03-08 00:39:03"
-    },
-    {
-      "container": "container_frontend",
-      "info": "container_frontend",
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:04"
-    },
-    {
-      "container": "container_backend",
-      "info": "container_backend",
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:06"
-    },
-    {
-      "container": "container_vllm",
-      "info": "container_vllm",
-      "current_dl": "000000000000000",
-      "timestamp": "2025-03-08 00:39:08"
-    }
-  ]
-}
 
 current_models_data = []
 db_gpu_data = []
@@ -598,9 +24,8 @@ db_gpu_data_len = ''
 
 GLOBAL_SEARCH_INPUT_TS = 0
 GLOBAL_SEARCH_INPUT_THRESHOLD = 10
-GLOBAL_SEARCH_REQUEST_TIMEOUT = 3
+REQUEST_TIMEOUT = 3
 GLOBAL_SEARCH_INITIAL_DELAY = 10
-
 
 
 
@@ -639,39 +64,13 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
     defaults_frontend = json.load(f)["frontend"]
     logging.info(f' [START] SUCCESS! Loaded: {DEFAULTS_PATH}')
     logging.info(f' [START] {len(defaults_frontend['vllm_supported_architectures'])} supported vLLM architectures found!')
+    logging.info(f' [START] {len(defaults_frontend['tested_models'])} tested_models found!')
 
 
 
 
 
 
-
-
-def welcome(name):
-    if name == "car":
-        return f"meep meep"
-    return f"Welcome to Gradio, {name}!"
-
-def update_components(input_text):
-    # Count the number of characters in the input
-    char_count = len(input_text)
-    
-    # Create a list of components to return
-    components = []
-    
-    # Add the output textbox first
-    output = gr.Textbox(value=welcome(input_text))
-    components.append(output)
-    
-    # Add additional buttons based on character count
-    buttons = []
-    for i in range(char_count):
-        buttons.append(
-            gr.Button(value=f"Button {i+1} for '{input_text[i]}'")
-        )
-    
-    # Return both the output and all buttons
-    return [output, *buttons]
 
 
 
@@ -680,54 +79,19 @@ model_dropdown = gr.Dropdown(choices=[''], label=f'Select a Hugging Face model',
         
         
 def dropdown_load_tested_models():
-    tested_models = [
-        {
-        "id": "Qwen/Qwen2.5-1.5B-Instruct",
-        },
-        {
-        "id": "PowerInfer/SmallThinker-3B-Preview",
-        },
-        {
-        "id": "bigcode/starcoder2-3b",
-        },
-        {
-        "id": "bigcode/starcoder2-7b",
-        },
-        {
-        "id": "ibm-granite/granite-3.0-1b-a400m-base",
-        },
-        {
-        "id": "stabilityai/stablelm-3b-4e1t",
-        },
-        {
-        "id": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
-        },
-        {
-        "id": "adept/persimmon-8b-chat",
-        },
-        {
-        "id": "adept/persimmon-8b-base",
-        },
-        {
-        "id": "allenai/OLMoE-1B-7B-0924-Instruct",
-        },
-        {
-        "id": "facebook/opt-125m",
-        }
-    ]
     global current_models_data
-    response_models = tested_models
-    print(f'response_models: {response_models}')
-    current_models_data = response_models.copy()
-    model_ids = [m["id"] for m in response_models]
+    print(f'len(defaults_frontend["tested_models"]): {len(defaults_frontend["tested_models"])}')
+    current_models_data = defaults_frontend["tested_models"].copy()
+    model_ids = [m["id"] for m in defaults_frontend["tested_models"]]
     print(f'model_ids: {model_ids}')
     # return gr.update(choices=model_ids, value=response_models[0]["id"], visible=True)
-    return [gr.update(choices=model_ids, value=response_models[0]["id"], visible=True),gr.update(value=response_models[0]["id"],show_label=True, label=f'Loaded {len(model_ids)} models!')]
+    return [gr.update(choices=model_ids, value=defaults_frontend["tested_models"][0]["id"], visible=True),gr.update(show_label=True, label=f'Loaded {len(model_ids)} models!')]
+    # return [gr.update(choices=model_ids, value=defaults_frontend["tested_models"][0]["id"], visible=True),gr.update(value=defaults_frontend["tested_models"][0]["id"],show_label=True, label=f'Loaded {len(model_ids)} models!')]
 
 def huggingface_hub_search(query):
     try:
         global current_models_data
-        response = requests.get(f'https://huggingface.co/api/models?search={query}', timeout=GLOBAL_SEARCH_REQUEST_TIMEOUT)
+        response = requests.get(f'https://huggingface.co/api/models?search={query}', timeout=REQUEST_TIMEOUT)
         response_models = response.json()
         print(f'response_models: {response_models}')
         current_models_data = response_models.copy()
@@ -777,7 +141,7 @@ def search_models(query):
     try:
         
         global current_models_data    
-        response = requests.get(f'https://huggingface.co/api/models?search={query}', timeout=GLOBAL_SEARCH_REQUEST_TIMEOUT)
+        response = requests.get(f'https://huggingface.co/api/models?search={query}', timeout=REQUEST_TIMEOUT)
         response_models = response.json()
         current_models_data = response_models.copy()
         model_ids = [m["id"] for m in response_models]
@@ -1074,7 +438,7 @@ def get_additional_info(selected_id):
                 pass
                     
             try:
-                response = requests.get(f'https://huggingface.co/{selected_id}/resolve/main/config.json', timeout=GLOBAL_SEARCH_REQUEST_TIMEOUT)
+                response = requests.get(f'https://huggingface.co/{selected_id}/resolve/main/config.json', timeout=REQUEST_TIMEOUT)
                 if response.status_code == 200:
                     response_json = response.json()
                     res_model_data["config_data"] = response_json
@@ -1225,13 +589,64 @@ def check_rx_change(current_rx_bytes):
 
 
 
-def transcribe_audio(audio_file):
+def get_audio_path(audio_file):
     req_file = audio_file
-    return f'req_file: {req_file}'
+    return [f'req_file: {req_file}', f'{req_file}']
 
+def transcribe_audio(audio_file_path):  
+    try:
+        print(f'[transcribe_audio] audio_file_path ... {audio_file_path}')
+        logging.info(f'[transcribe_audio] audio_file_path ... {audio_file_path}')
+      
+        AUDIO_URL = f'http://container_audio:{os.getenv("AUDIO_PORT")}/t'
 
+        print(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
+        logging.info(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
 
-REQUEST_TIMEOUT = 300
+        print(f'[transcribe_audio] getting status ... ')
+        logging.info(f'[transcribe_audio] getting status ... ')
+        
+        response = requests.post(AUDIO_URL, json={
+            "method": "status"
+        }, timeout=REQUEST_TIMEOUT)
+
+        if response.status_code == 200:          
+            print(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
+            logging.info(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
+            res_json = response.json()    
+            print(f'[transcribe_audio] >> got res_json ... {res_json}')
+            logging.info(f'[transcribe_audio] >> got res_json ... {res_json}')
+
+            if res_json["result_data"] == "ok":
+                print(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
+                logging.info(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
+      
+                response = requests.post(AUDIO_URL, json={
+                    "method": "transcribe",
+                    "audio_model_size": "small",
+                    "audio_file_path": audio_file_path,
+                })
+
+                print(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
+                logging.info(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
+                
+                res_json = response.json()
+   
+                print(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
+                logging.info(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
+                
+                if res_json["result_status"] == 200:
+                    return f'{res_json["result_data"]}'
+                else: 
+                    return 'Error :/'
+            else:
+                print('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
+                logging.info('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
+                return 'Error :/'
+
+    except Exception as e:
+        return f'Error: {e}'
+
 def wait_for_backend(backend_url, timeout=300):
     start_time = time.time()
     while time.time() - start_time < timeout:
@@ -1322,12 +737,16 @@ def create_app():
                 
                 with gr.Column(scale=1):
                     text_output = gr.Textbox(label="Transcription", lines=8)
-                
+                    audio_path = gr.Textbox(visible=False)
                     transcribe_btn = gr.Button("Transcribe")
                     transcribe_btn.click(
-                        transcribe_audio,
-                        inputs=audio_input,
-                        outputs=text_output
+                      get_audio_path,
+                      audio_input,
+                      [text_output,audio_path]
+                    ).then(
+                      get_audio_path,
+                      audio_input,
+                      [text_output,audio_path]
                     )
         
         
@@ -1352,14 +771,7 @@ def create_app():
             None,
             [model_dropdown,input_search]
         )
-        with gr.Row():
-            port_model = gr.Number(value=8001,visible=False,label="Port of model: ")
-            port_vllm = gr.Number(value=8000,visible=False,label="Port of vLLM: ")
-        
-        info_textbox = gr.Textbox(value="Interface not possible for selected model. Try another model or check 'pipeline_tag', 'transformers', 'private', 'gated'", show_label=False, visible=False)
-        btn_dl = gr.Button("Download", visible=False)
-        
-        # model_dropdown.change(get_info, model_dropdown, [selected_model_search_data,selected_model_id,selected_model_pipeline_tag,selected_model_transformers,selected_model_private,selected_model_downloads],selected_model_container_name).then(get_additional_info, model_dropdown, [selected_model_hf_data, selected_model_config_data, selected_model_id, selected_model_size, selected_model_gated]).then(lambda: gr.update(visible=True), None, selected_model_pipeline_tag).then(lambda: gr.update(visible=True), None, selected_model_transformers).then(lambda: gr.update(visible=True), None, selected_model_private).then(lambda: gr.update(visible=True), None, selected_model_downloads).then(lambda: gr.update(visible=True), None, selected_model_size).then(lambda: gr.update(visible=True), None, selected_model_gated).then(lambda: gr.update(visible=True), None, port_model).then(lambda current_value: current_value + 1, port_model, port_model).then(lambda: gr.update(visible=True), None, port_vllm).then(lambda current_value: current_value + 1, port_vllm, port_vllm).then(gr_load_check, [selected_model_id,selected_model_pipeline_tag,selected_model_transformers,selected_model_private,selected_model_gated],[info_textbox,btn_dl])
+
         
         model_dropdown.change(
             lambda: gr.update(visible=True), 
@@ -1383,55 +795,23 @@ def create_app():
             [output]
         )
 
-        create_response = gr.Textbox(label="Building container...", show_label=True, visible=False)  
-        timer_dl_box = gr.Textbox(label="Dowmload progress:", visible=False)
         
-        btn_interface = gr.Button("Load Interface",visible=False)
-        @gr.render(inputs=[selected_model_pipeline_tag, selected_model_id], triggers=[btn_interface.click])
-        def show_split(text_pipeline, text_model):
-            if len(text_model) == 0:
-                gr.Markdown("Error pipeline_tag or model_id")
-            else:
-                gr.Interface.from_pipeline(pipeline(text_pipeline, model=text_model))
+        
+        
+        
+        
+        
+        
 
-
-        btn_dl.click(lambda: gr.update(label="Building vLLM container",visible=True), None, create_response).then(lambda: gr.update(visible=True), None, timer_dl_box).then(lambda: gr.update(visible=True), None, btn_interface)
-        gr.Markdown(
-        """
-        # Dynamic Buttons Demo!
-        Start typing below and watch buttons appear based on your input length.
-        """)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        with gr.Row():
-            inp = gr.Textbox(placeholder="Type something here", label="Main Input")
-            out = gr.Textbox(label="Output")
-        
-        # This will hold our dynamic buttons
-        button_group = gr.Group()
-        
-        # Update both the output and dynamic buttons when input changes
-        inp.change(
-            fn=update_components,
-            inputs=inp,
-            outputs=[out, button_group]
-        )
 
     return app
 
 
 # Launch the app
 if __name__ == "__main__":
-    backend_url = f'http://{os.getenv("CONTAINER_BACKEND")}:{os.getenv("BACKEND_PORT")}/docker'
+    backend_url = f'http://container_backend:{os.getenv("BACKEND_PORT")}/docker'
+    
+    
     
     # Wait for the backend container to be online
     if wait_for_backend(backend_url):
