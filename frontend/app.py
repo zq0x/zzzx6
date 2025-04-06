@@ -76,9 +76,83 @@ with open(DEFAULTS_PATH, "r", encoding="utf-8") as f:
 
 
 
-model_dropdown = gr.Dropdown(choices=[''], label=f'Select a Hugging Face model', interactive=True, show_label=False, visible=False)
 
+
+
+def redis_connection(**kwargs):
+    try:
+        if not kwargs:
+            print(f' **REDIS: Error: no kwargs')
+            return False
+        else:
+            print(f' **REDIS: kwargs: {kwargs}')
         
+        if not kwargs["db_name"]:
+            print(f' **REDIS: Error: no db_name')
+            return False
+            
+        if not kwargs["method"]:
+            print(f' **REDIS: Error: no method')
+            return False
+            
+        if not kwargs["select"]:
+            print(f' **REDIS: Error: no select')
+            return False
+
+        res_db_list = r.lrange(kwargs["db_name"], 0, -1)
+
+        print(f' **REDIS: found {len(res_db_list)} entries!')
+        res_db_list = [json.loads(entry) for entry in res_db_list]
+        
+        if kwargs["select"] == "filter":
+            if not kwargs["filter_key"]:
+                print(f' **REDIS: Error: no filter_key')
+                return False
+            
+            if not kwargs["filter_val"]:
+                print(f' **REDIS: Error: no filter_val')
+                return False
+
+            res_db_list = [entry for entry in res_db_list if entry[kwargs["filter_key"]] == kwargs["filter_val"]]
+            print(f' **REDIS: filtered: {len(res_db_list)}')
+        
+        if kwargs["method"] == "get":
+            return res_db_list
+            
+        if kwargs["method"] == "update":
+            if len(res_db_list) > 0:
+                update_i = 0
+                for entry in [json.dumps(entry) for entry in res_db_list]:
+                    r.lrem(kwargs["db_name"], 0, entry)
+                    entry = json.loads(entry)
+                    entry["ts"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    r.rpush(kwargs["db_name"], json.dumps(entry))
+                    update_i = update_i + 1
+                print(f' **REDIS: updated ({update_i}/{len(res_db_list)})!')
+                return res_db_list
+            else:
+                print(f' **REDIS: Error: no entry to update for db_name: {kwargs["db_name"]}')
+                return False
+        
+        if kwargs["method"] == "save":
+            data_obj = {
+                "id": kwargs.get("id", "0"),
+                "State": {
+                    "Status": "running"
+                },
+                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }        
+            r.rpush(kwargs["db_name"], json.dumps(data_obj))
+            print(f' **REDIS: saved!')
+            return res_db_list
+        
+        return False
+    
+    except Exception as e:
+        print(f' **REDIS: Error: {e}')
+        return False
+
+
         
 def dropdown_load_tested_models():
     global current_models_data
@@ -560,96 +634,8 @@ def gr_load_check(selected_model_id, selected_model_architectures, selected_mode
 
     return f'Selected model is supported by vLLM!'
 
-rx_change_arr = []
-def check_rx_change(current_rx_bytes):
-    try:                
-        try:
-            int(current_rx_bytes)
-        except ValueError:
-            return '0'
-        global rx_change_arr
-        rx_change_arr += [int(current_rx_bytes)]
-        if len(rx_change_arr) > 4:
-            last_value = rx_change_arr[-1]
-            same_value_count = 0
-            for i in range(1,len(rx_change_arr)):
-                if rx_change_arr[i*-1] == last_value:
-                    same_value_count += 1
-                    if same_value_count > 10:
-                        return f'Count > 10 Download finished'
-                else:
-                    return f'Count: {same_value_count} {str(rx_change_arr)}'
-            return f'Count: {same_value_count} {str(rx_change_arr)}'        
-    except Exception as e:
-        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
-        return f'Error rx_change_arr {str(e)}'
 
 
-
-
-
-
-
-
-def get_audio_path(audio_file):
-    req_file = audio_file
-    return [f'req_file: {req_file}', f'{req_file}']
-
-def transcribe_audio(audio_model,audio_path,device,compute_type):  
-    try:
-        print(f'[transcribe_audio] audio_path ... {audio_path}')
-        logging.info(f'[transcribe_audio] audio_path ... {audio_path}')
-      
-        AUDIO_URL = f'http://container_audio:{os.getenv("AUDIO_PORT")}/t'
-
-        print(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
-        logging.info(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
-
-        print(f'[transcribe_audio] getting status ... ')
-        logging.info(f'[transcribe_audio] getting status ... ')
-        
-        response = requests.post(AUDIO_URL, json={
-            "method": "status"
-        }, timeout=REQUEST_TIMEOUT)
-
-        if response.status_code == 200:          
-            print(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
-            logging.info(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
-            res_json = response.json()    
-            print(f'[transcribe_audio] >> got res_json ... {res_json}')
-            logging.info(f'[transcribe_audio] >> got res_json ... {res_json}')
-
-            if res_json["result_data"] == "ok":
-                print(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
-                logging.info(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
-      
-                response = requests.post(AUDIO_URL, json={
-                    "method": "transcribe",
-                    "audio_model": audio_model,
-                    "audio_path": audio_path,
-                    "device": device,
-                    "compute_type": compute_type
-                })
-
-                print(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
-                logging.info(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
-                
-                res_json = response.json()
-   
-                print(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
-                logging.info(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
-                
-                if res_json["result_status"] == 200:
-                    return f'{res_json["result_data"]}'
-                else: 
-                    return 'Error :/'
-            else:
-                print('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
-                logging.info('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
-                return 'Error :/'
-
-    except Exception as e:
-        return f'Error: {e}'
 
 def wait_for_backend(backend_url, timeout=300):
     start_time = time.time()
@@ -733,6 +719,80 @@ def toggle_compute_type(device):
     return gr.update(choices=["int8_float16", "float16"], value="float16")
 
 
+def refresh_container():
+    try:
+        global docker_container_list
+        response = requests.post(f'http://container_backend:{os.getenv("BACKEND_PORT")}/docker', json={"method": "list"})
+        docker_container_list = response.json()
+        return docker_container_list
+    
+    except Exception as e:
+        print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {e}')
+        return f'err {str(e)}'
+
+
+
+
+def get_audio_path(audio_file):
+    req_file = audio_file
+    return [f'req_file: {req_file}', f'{req_file}']
+
+def transcribe_audio(audio_model,audio_path,device,compute_type):  
+    try:
+        print(f'[transcribe_audio] audio_path ... {audio_path}')
+        logging.info(f'[transcribe_audio] audio_path ... {audio_path}')
+      
+        AUDIO_URL = f'http://container_audio:{os.getenv("AUDIO_PORT")}/t'
+
+        print(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
+        logging.info(f'[transcribe_audio] AUDIO_URL ... {AUDIO_URL}')
+
+        print(f'[transcribe_audio] getting status ... ')
+        logging.info(f'[transcribe_audio] getting status ... ')
+        
+        response = requests.post(AUDIO_URL, json={
+            "method": "status"
+        }, timeout=REQUEST_TIMEOUT)
+
+        if response.status_code == 200:          
+            print(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
+            logging.info(f'[transcribe_audio] >> got response == 200 ... building json ... {response}')
+            res_json = response.json()    
+            print(f'[transcribe_audio] >> got res_json ... {res_json}')
+            logging.info(f'[transcribe_audio] >> got res_json ... {res_json}')
+
+            if res_json["result_data"] == "ok":
+                print(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
+                logging.info(f'[transcribe_audio] >> status: "ok" ... starting transcribe .... ')
+      
+                response = requests.post(AUDIO_URL, json={
+                    "method": "transcribe",
+                    "audio_model": audio_model,
+                    "audio_path": audio_path,
+                    "device": device,
+                    "compute_type": compute_type
+                })
+
+                print(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
+                logging.info(f'[transcribe_audio] >> got response #22222 == 200 ... building json ... {response}')
+                
+                res_json = response.json()
+   
+                print(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
+                logging.info(f'[transcribe_audio] >> #22222 got res_json ... {res_json}')
+                
+                if res_json["result_status"] == 200:
+                    return f'{res_json["result_data"]}'
+                else: 
+                    return 'Error :/'
+            else:
+                print('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
+                logging.info('[transcribe_audio] ERROR AUDIO SERVER DOWN!?')
+                return 'Error :/'
+
+    except Exception as e:
+        return f'Error: {e}'
+
 
 def create_app():
     with gr.Blocks() as app:
@@ -792,31 +852,49 @@ def create_app():
         
         output = gr.Textbox(label="Output", lines=4, show_label=True, visible=True)
         
-        test_vllms = [
-            {
-                "Id": "1",
-                
-                "State": {
-                "Status": "running"
-                }
-            },
-            {
-                "Id": "2",
-                
-                "State": {
-                "Status": "running"
-                }
-            },
-            {
-                "Id": "3",
-                
-                "State": {
-                "Status": "stopped"
-                }
-            }
-        ]
+
+
+        req_db = "db_test1"
+
+        test_call_save = {
+                        "db_name": req_db,
+                        "method": "save",
+                        "select": "all",
+                        "id": "3",
+                        "State": {
+                            "Status": "running"
+                        },
+                        "ts": "0"
+                    }
+
+        test_call_get = {
+                        "db_name": req_db,
+                        "method": "get",
+                        "select": "all"
+                    }
+
+        test_call_update = {
+                        "db_name": req_db,
+                        "method": "update",
+                        "select": "filter",
+                        "filter_key": "id",
+                        "filter_val": "3",
+                    }
+
+
+
+
+        print(f'__________________________________ save ___________________________________')
+        redis_connection(**test_call_save)
+        print(f'________________________________________________________________________')
+        print(f'')
                     
-        
+                
+        print(f'__________________________________ get __________________________________')
+        test_vllms = redis_connection(**test_call_get)
+        print(f'________________________________________________________________________')
+        print(f'{test_vllms}')
+        print(f'')
                 
         test_vllms_state = gr.State([])       
         @gr.render(inputs=test_vllms_state)
@@ -829,7 +907,7 @@ def create_app():
                 for current_container in test_vllms_list_running:
                     with gr.Row():
                         
-                        test_vllm_id = gr.Textbox(value=current_container["Id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
+                        test_vllm_id = gr.Textbox(value=current_container["id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
                         
                         test_vllm_status = gr.Textbox(value=current_container["State"]["Status"], interactive=False, elem_classes="table-cell", label="test_vllm_status")
                     
@@ -843,7 +921,7 @@ def create_app():
                         
                 for current_container in test_vllms_list_not_running:
                     with gr.Row():                            
-                        test_vllm_id = gr.Textbox(value=current_container["Id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
+                        test_vllm_id = gr.Textbox(value=current_container["id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
                         
                         test_vllm_status = gr.Textbox(value=current_container["State"]["Status"], interactive=False, elem_classes="table-cell", label="test_vllm_status")    
 
@@ -1199,7 +1277,8 @@ def create_app():
         )
 
         
-        
+        vllm_timer = gr.Timer(1,active=True)
+        vllm_timer.tick(redis_connection(**test_call_update), outputs=[test_vllms_state])
         
         
         
