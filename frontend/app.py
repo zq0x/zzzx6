@@ -897,8 +897,10 @@ def create_app():
         print(f'1')
         print(f'{test_vllms}')
         print(f'2')
-        test_vllm = [{'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '3', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}]
+        print(f'{test_vllms_list_running}')
         print(f'3')
+        test_vllm = [{'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '3', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}]
+        print(f'4')
         test_vllms_state = gr.State([])       
         @gr.render(inputs=test_vllms_state)
         def render_test_vllms(render_test_vllms_list):
