@@ -792,12 +792,66 @@ def create_app():
         
         output = gr.Textbox(label="Output", lines=4, show_label=True, visible=True)
         
+        test_vllms = [
+            {
+                "Id": "1",
+                
+                "State": {
+                "Status": "running"
+                }
+            },
+            {
+                "Id": "2",
+                
+                "State": {
+                "Status": "running"
+                }
+            },
+            {
+                "Id": "3",
+                
+                "State": {
+                "Status": "stopped"
+                }
+            }
+        ]
+                    
         
-        
-        
-        
-        
-        
+                
+        test_vllms_state = gr.State([])       
+        @gr.render(inputs=test_vllms_state)
+        def render_test_vllms(render_test_vllms_list):
+            test_vllms_list_running = [c for c in test_vllms if c["State"]["Status"] == "running"]
+            test_vllms_list_not_running = [c for c in test_vllms if c["State"]["Status"] != "running"]
+            with gr.Accordion(f'test_vllms | Running {len(test_vllms_list_running)} | Not Running {len(test_vllms_list_not_running)}', open=True):
+                gr.Markdown(f'### Running ({len(test_vllms_list_running)})')
+
+                for current_container in test_vllms_list_running:
+                    with gr.Row():
+                        
+                        test_vllm_id = gr.Textbox(value=current_container["Id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
+                        
+                        test_vllm_status = gr.Textbox(value=current_container["State"]["Status"], interactive=False, elem_classes="table-cell", label="test_vllm_status")
+                    
+                    gr.Markdown(
+                        """
+                        <hr>
+                        """
+                    )
+                
+                gr.Markdown(f'### Not running ({len(test_vllms_list_not_running)})')
+                        
+                for current_container in test_vllms_list_not_running:
+                    with gr.Row():                            
+                        test_vllm_id = gr.Textbox(value=current_container["Id"], interactive=False, elem_classes="table-cell", label="test_vllm_id")
+                        
+                        test_vllm_status = gr.Textbox(value=current_container["State"]["Status"], interactive=False, elem_classes="table-cell", label="test_vllm_status")    
+
+                    gr.Markdown(
+                        """
+                        <hr>
+                        """
+                    )
         
         container_state = gr.State([])   
         docker_container_list = get_docker_container_list()     
