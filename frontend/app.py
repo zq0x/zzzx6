@@ -901,6 +901,8 @@ def create_app():
         print(f'3')
         test_vllm = [{'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '2', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}, {'id': '3', 'State': {'Status': 'running'}, 'ts': '2025-04-07 00:47:00'}]
         print(f'4')
+        print(type(test_vllms))  # Should be `<class 'list'>`
+        print(f'5')
         test_vllms_state = gr.State([])       
         @gr.render(inputs=test_vllms_state)
         def render_test_vllms(render_test_vllms_list):
@@ -1283,7 +1285,7 @@ def create_app():
 
         
         vllm_timer = gr.Timer(1,active=True)
-        vllm_timer.tick(redis_connection(**test_call_update), outputs=[test_vllms_state])
+        vllm_timer.tick(redis_connection(**test_call_update), None, None)
         
         
         
