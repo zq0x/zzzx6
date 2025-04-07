@@ -798,7 +798,7 @@ def create_app():
     with gr.Blocks() as app:
         gr.Markdown(
         """
-        # Welcome!
+        # Welcome x7!
         Select a Hugging Face model and deploy it on a port
         
         **Note**: _[vLLM supported models list](https://docs.vllm.ai/en/latest/models/supported_models.html)_        
